@@ -3,32 +3,49 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import * as ExpoSplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
 
 import SplashScreenComponent from "@/components/splash-screen";
+import { AuthProvider, useAuth } from "@/context/auth-context";
 
 ExpoSplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function RootNavigator() {
+  const { isLoggedIn, isLoading } = useAuth();
   const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
     ExpoSplashScreen.hideAsync();
   }, []);
 
+  const ready = splashDone && !isLoading;
+
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }} initialRouteName="(tabs)">
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
       </Stack>
+      {ready && !isLoggedIn && <Redirect href="/(auth)/login" />}
+      {ready && isLoggedIn && <Redirect href="/(tabs)/(dashboard)" />}
       {!splashDone && (
         <SplashScreenComponent onComplete={() => setSplashDone(true)} />
       )}
-    </ThemeProvider>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  const colorScheme = useColorScheme();
+
+  return (
+    <AuthProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <RootNavigator />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

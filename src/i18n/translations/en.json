@@ -2,6 +2,8 @@
   "tabs": {
     "dashboard": "Dashboard",
     "assets": "Assets",
+    "aiagent": "AI Agent",
+    "donate": "Donate",
     "settings": "Settings",
     "auth": "Auth"
   },

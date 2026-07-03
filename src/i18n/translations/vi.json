@@ -2,7 +2,10 @@
   "tabs": {
     "dashboard": "Bảng Điều Khiển",
     "assets": "Tài Sản",
-    "settings": "Cài Đặt"
+    "aiagent": "AI Agent",
+    "donate": "Ủng Hộ",
+    "settings": "Cài Đặt",
+    "auth": "Tài Khoản"
   },
   "dashboard": {
     "title": "Bảng Điều Khiển",

@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { useColorScheme } from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { Colors } from "@/constants/theme";
@@ -40,18 +40,6 @@ export default function AppTabs() {
         }}
       />
 
-      {/* Auth Tab */}
-      <Tabs.Screen
-        name="(auth)"
-        options={{
-          title: i18n.t("tabs.auth"),
-          tabBarLabel: i18n.t("tabs.auth"),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="lock" size={size} color={color} />
-          ),
-        }}
-      />
-
       {/* Assets Tab */}
       <Tabs.Screen
         name="(asset)"
@@ -60,6 +48,37 @@ export default function AppTabs() {
           tabBarLabel: i18n.t("tabs.assets"),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="star" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* AI Agent Tab */}
+      <Tabs.Screen
+        name="(aiagent)"
+        options={{
+          title: i18n.t("tabs.aiagent"),
+          tabBarLabel: "",
+          tabBarIcon: () => (
+            <View style={[styles.fab, { backgroundColor: colors.tint }]}>
+              <MaterialCommunityIcons name="robot" size={26} color="#fff" />
+            </View>
+          ),
+          tabBarItemStyle: styles.fabItem,
+        }}
+      />
+
+      {/* Donate Tab */}
+      <Tabs.Screen
+        name="(donate)"
+        options={{
+          title: i18n.t("tabs.donate"),
+          tabBarLabel: i18n.t("tabs.donate"),
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="hand-heart"
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -75,6 +94,26 @@ export default function AppTabs() {
           ),
         }}
       />
+
+      {/* Auth Tab — hidden from tab bar */}
+      <Tabs.Screen name="(auth)" options={{ href: null }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  fabItem: {
+    marginTop: -22,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  fab: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+  },
+});

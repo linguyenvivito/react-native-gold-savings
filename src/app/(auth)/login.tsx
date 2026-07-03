@@ -1,7 +1,9 @@
 import { ThemedView } from "@/components/themed-view";
-import { Link } from "expo-router";
+import { useAuth } from "@/context/auth-context";
+import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,9 +16,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
+  const router = useRouter();
 
-  const handleLogin = () => {
-    alert("Login submitted");
+  const handleLogin = async () => {
+    const success = await login(username, password);
+    if (success) {
+      router.replace("/(tabs)/(dashboard)");
+    } else {
+      Alert.alert("Login Failed", "Invalid username or password.");
+    }
   };
 
   return (
