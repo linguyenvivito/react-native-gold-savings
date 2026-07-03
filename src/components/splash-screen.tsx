@@ -1,4 +1,3 @@
-import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import {
     Pressable,
@@ -15,22 +14,25 @@ import { AnimatedIcon } from "@/components/animated-icon";
 import { Colors } from "@/constants/theme";
 import i18n from "@/i18n";
 
-export default function SplashScreen() {
+interface SplashScreenProps {
+  onComplete?: () => void;
+}
+
+export default function SplashScreen({ onComplete }: SplashScreenProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
-  const router = useRouter();
 
   useEffect(() => {
-    // Auto-navigate to dashboard after 4 seconds
+    // Auto-complete splash after 4 seconds
     const timer = setTimeout(() => {
-      router.replace("/(tabs)/(dashboard)/dashboard");
+      onComplete?.();
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [onComplete]);
 
   const handleGetStarted = () => {
-    router.replace("/(tabs)/(dashboard)/dashboard");
+    onComplete?.();
   };
 
   return (
