@@ -45,6 +45,14 @@
     "savedGoldData": "Dữ liệu vàng đã lưu",
     "totalMoney": "Tổng tiền"
   },
+  "app": {
+    "name": "Tiết Kiệm Vàng",
+    "tagline": "Quản Lý Các Khoản Đầu Tư Vàng Của Bạn",
+    "version": "Phiên Bản",
+    "developer": "Nhà Phát Triển",
+    "language": "Ngôn Ngữ",
+    "getStarted": "Bắt Đầu"
+  },
   "common": {
     "cancel": "Hủy",
     "apply": "Áp dụng"

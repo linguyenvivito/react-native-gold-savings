@@ -45,6 +45,14 @@
     "savedGoldData": "Saved Gold Data",
     "totalMoney": "Total Money"
   },
+  "app": {
+    "name": "Gold Savings",
+    "tagline": "Track Your Golden Investments",
+    "version": "Version",
+    "developer": "Developer",
+    "language": "Language",
+    "getStarted": "Get Started"
+  },
   "common": {
     "cancel": "Cancel",
     "apply": "Apply"

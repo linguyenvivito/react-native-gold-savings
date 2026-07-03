@@ -3,17 +3,39 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 
-import { AnimatedSplashOverlay } from "@/components/animated-icon";
-import AppTabs from "@/components/app-tabs.web";
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
+export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    // Hide the native splash screen after a short delay
+    const timer = setTimeout(async () => {
+      await SplashScreen.hideAsync();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        {/* Splash Screen - shown first */}
+        <Stack.Screen name="splash" />
+
+        {/* Main App Tabs */}
+        <Stack.Screen name="(tabs)" />
+      </Stack>
     </ThemeProvider>
   );
 }
