@@ -3,48 +3,39 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
+import { Stack, useRouter } from "expo-router";
+import * as ExpoSplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
 
 import SplashScreenComponent from "@/components/splash-screen";
 
-// Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+ExpoSplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [showSplash, setShowSplash] = useState(true);
+  const [splashDone, setSplashDone] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    // Hide native splash after a brief delay
-    const timer = setTimeout(async () => {
-      await SplashScreen.hideAsync();
-    }, 200);
-
-    return () => clearTimeout(timer);
+    ExpoSplashScreen.hideAsync();
   }, []);
 
   const handleSplashDone = () => {
-    setShowSplash(false);
+    setSplashDone(true);
   };
 
-  if (showSplash) {
-    return <SplashScreenComponent onComplete={handleSplashDone} />;
-  }
+  useEffect(() => {
+    if (splashDone) {
+      router.replace("/(tabs)/(dashboard)/dashboard");
+    }
+  }, [splashDone]);
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        {/* Main App Tabs */}
+      {!splashDone && <SplashScreenComponent onComplete={handleSplashDone} />}
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
-
-        {/* Auth Routes */}
         <Stack.Screen name="(auth)" />
       </Stack>
     </ThemeProvider>
