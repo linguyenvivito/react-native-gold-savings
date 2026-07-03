@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import {
     Pressable,
@@ -7,32 +7,31 @@ import {
     StyleSheet,
     Text,
     useColorScheme,
-    View
+    View,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { AnimatedIcon } from "@/components/animated-icon";
 import { Colors } from "@/constants/theme";
-import { useSplashScreen } from "@/hooks/use-splash";
 import i18n from "@/i18n";
 
 export default function SplashScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
-  const { showSplash, hideSplash } = useSplashScreen();
+  const router = useRouter();
 
   useEffect(() => {
-    // Auto-hide splash after 4 seconds
+    // Auto-navigate to dashboard after 4 seconds
     const timer = setTimeout(() => {
-      hideSplash();
+      router.replace("/(tabs)/(dashboard)/dashboard");
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, [hideSplash]);
+  }, [router]);
 
-  if (!showSplash) {
-    return null;
-  }
+  const handleGetStarted = () => {
+    router.replace("/(tabs)/(dashboard)/dashboard");
+  };
 
   return (
     <SafeAreaView
@@ -97,15 +96,14 @@ export default function SplashScreen() {
           entering={FadeInDown.duration(800).delay(900)}
           style={styles.buttonContainer}
         >
-          <Link href="/dashboard" asChild>
-            <Pressable
-              style={[styles.button, { backgroundColor: colors.tint }]}
-            >
-              <Text style={[styles.buttonText, { color: colors.background }]}>
-                {i18n.t("app.getStarted") || "Get Started"}
-              </Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            onPress={handleGetStarted}
+            style={[styles.button, { backgroundColor: colors.tint }]}
+          >
+            <Text style={[styles.buttonText, { color: colors.background }]}>
+              {i18n.t("app.getStarted") || "Get Started"}
+            </Text>
+          </Pressable>
         </Animated.View>
 
         <Animated.View

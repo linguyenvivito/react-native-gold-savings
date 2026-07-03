@@ -15,10 +15,10 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
-    // Hide the native splash screen after a short delay
+    // Hide native splash after a brief delay
     const timer = setTimeout(async () => {
       await SplashScreen.hideAsync();
-    }, 500);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, []);
@@ -29,6 +29,7 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
         }}
+        initialRouteName="splash"
       >
         {/* Splash Screen - shown first */}
         <Stack.Screen name="splash" />
