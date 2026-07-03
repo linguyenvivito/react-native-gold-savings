@@ -1,0 +1,52 @@
+{
+  "tabs": {
+    "dashboard": "Dashboard",
+    "assets": "Assets",
+    "settings": "Settings",
+    "auth": "Auth"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalMoney": "Total Money",
+    "totalGold": "Total Gold",
+    "filterByDate": "Filter by Date",
+    "pickDate": "Pick Date",
+    "from": "From",
+    "filteredMoney": "Filtered Money",
+    "goldRecords": "Gold Records",
+    "price": "Price",
+    "value": "Value",
+    "unit": "Unit",
+    "date": "Date"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "forgotPassword": "Forgot Password"
+  },
+  "settings": {
+    "title": "Settings"
+  },
+  "assets": {
+    "title": "Assets",
+    "buy": "Buy",
+    "sell": "Sell",
+    "transfer": "Transfer",
+    "price": "Price",
+    "value": "Value",
+    "unit": "Unit",
+    "fen": "Fen",
+    "mace": "Mace",
+    "tael": "Tael",
+    "releaseDate": "Release Date",
+    "location": "Location",
+    "description": "Description",
+    "submit": "Submit to Gold Data",
+    "savedGoldData": "Saved Gold Data",
+    "totalMoney": "Total Money"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "apply": "Apply"
+  }
+}
