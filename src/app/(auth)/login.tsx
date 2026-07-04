@@ -14,19 +14,40 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
   const handleLogin = async () => {
-    const success = await login(username, password);
-    if (success) {
-      router.replace("/(tabs)/(dashboard)");
-    } else {
-      Alert.alert("Login Failed", "Invalid username or password.");
+    if (isSubmitting) {
+      return;
+    }
+
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail || !password) {
+      Alert.alert("Missing Information", "Please enter email and password.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const success = await login(normalizedEmail, password);
+      if (success) {
+        router.replace("/(tabs)/(dashboard)");
+      } else {
+        Alert.alert(
+          "Login Failed",
+          "Invalid email/password or account not confirmed.",
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const isButtonDisabled = isSubmitting || !email.trim() || !password;
 
   return (
     <ThemedView style={styles.container}>
@@ -43,16 +64,20 @@ export default function LoginScreen() {
 
           {/* Form */}
           <View style={styles.form}>
-            {/* Username Input */}
+            {/* Email Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Username</Text>
+              <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter your username"
+                placeholder="Enter your email"
                 placeholderTextColor="#9ca3af"
-                value={username}
-                onChangeText={setUsername}
+                value={email}
+                onChangeText={setEmail}
                 autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="emailAddress"
+                keyboardType="email-address"
+                returnKeyType="next"
               />
             </View>
 
@@ -66,6 +91,10 @@ export default function LoginScreen() {
                 secureTextEntry={true}
                 value={password}
                 onChangeText={setPassword}
+                autoCorrect={false}
+                textContentType="password"
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
               />
             </View>
 
@@ -73,17 +102,21 @@ export default function LoginScreen() {
             <Pressable
               style={({ pressed }) => [
                 styles.loginButton,
+                isButtonDisabled && styles.loginButtonDisabled,
                 pressed && styles.loginButtonPressed,
               ]}
               onPress={handleLogin}
+              disabled={isButtonDisabled}
             >
-              <Text style={styles.loginButtonText}>Login</Text>
+              <Text style={styles.loginButtonText}>
+                {isSubmitting ? "Signing In..." : "Login"}
+              </Text>
             </Pressable>
           </View>
 
           {/* Links */}
           <View style={styles.linksContainer}>
-            <Link href="/forgot-password" style={styles.link}>
+            <Link href="/(auth)/forgot-password" style={styles.link}>
               <Text style={styles.linkText}>Forgot Password?</Text>
             </Link>
           </View>
@@ -91,7 +124,7 @@ export default function LoginScreen() {
           {/* Register Link */}
           <View style={styles.registerContainer}>
             <Text style={styles.registerText}>Don't have an account? </Text>
-            <Link href="/register" style={styles.registerLink}>
+            <Link href="/(auth)/register" style={styles.registerLink}>
               <Text style={styles.registerLinkText}>Register</Text>
             </Link>
           </View>
@@ -159,6 +192,9 @@ const styles = StyleSheet.create({
   loginButtonPressed: {
     backgroundColor: "#c9a227",
     opacity: 0.8,
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
   },
   loginButtonText: {
     color: "#ffffff",

@@ -1,68 +1,133 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { Platform } from "react-native";
-
-const AUTH_KEY = "auth_logged_in";
-
-// Platform-safe storage: localStorage on web, in-memory map on native
-const nativeStore = new Map<string, string>();
-const storage = {
-  getItem: async (key: string): Promise<string | null> => {
-    if (Platform.OS === "web") return localStorage.getItem(key);
-    return nativeStore.get(key) ?? null;
-  },
-  setItem: async (key: string, value: string): Promise<void> => {
-    if (Platform.OS === "web") localStorage.setItem(key, value);
-    else nativeStore.set(key, value);
-  },
-  removeItem: async (key: string): Promise<void> => {
-    if (Platform.OS === "web") localStorage.removeItem(key);
-    else nativeStore.delete(key);
-  },
-};
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (username: string, email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const STATIC_USERNAME = "admin";
-const STATIC_PASSWORD = "123456";
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session from storage on mount
+  const applySessionState = (hasSession: boolean) => {
+    setIsLoggedIn(hasSession);
+  };
+
   useEffect(() => {
-    storage
-      .getItem(AUTH_KEY)
-      .then((value) => setIsLoggedIn(value === "true"))
-      .finally(() => setIsLoading(false));
+    if (!isSupabaseConfigured || !supabase) {
+      console.warn(
+        "[auth] Supabase is not configured. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_KEY.",
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    const supabaseClient = supabase;
+
+    let isMounted = true;
+
+    const restoreSession = async () => {
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) {
+        console.warn("[auth] unable to restore session", error.message);
+      }
+
+      if (!isMounted) {
+        return;
+      }
+
+      applySessionState(Boolean(data.session));
+      setIsLoading(false);
+    };
+
+    restoreSession();
+
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      applySessionState(Boolean(session));
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (
-    username: string,
+    email: string,
     password: string,
   ): Promise<boolean> => {
-    if (username === STATIC_USERNAME && password === STATIC_PASSWORD) {
-      await storage.setItem(AUTH_KEY, "true");
-      setIsLoggedIn(true);
-      return true;
+    if (!supabase) {
+      return false;
     }
-    return false;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (error) {
+      console.warn("[auth] login failed", error.message);
+      return false;
+    }
+
+    const hasSession = Boolean(data.session);
+    applySessionState(hasSession);
+    return hasSession;
+  };
+
+  const register = async (
+    username: string,
+    email: string,
+    password: string,
+  ): Promise<boolean> => {
+    if (!supabase) {
+      return false;
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: {
+          username: username.trim(),
+        },
+      },
+    });
+
+    if (error) {
+      console.warn("[auth] register failed", error.message);
+      return false;
+    }
+
+    // If email confirmation is disabled, a session may already exist.
+    applySessionState(Boolean(data.session));
+    return true;
   };
 
   const logout = async () => {
-    await storage.removeItem(AUTH_KEY);
+    if (!supabase) {
+      setIsLoggedIn(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.warn("[auth] logout failed", error.message);
+    }
+
     setIsLoggedIn(false);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

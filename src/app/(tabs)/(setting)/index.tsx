@@ -1,4 +1,5 @@
 import { ThemedView } from "@/components/themed-view";
+import { useAuth } from "@/context/auth-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import i18n from "@/i18n";
 import { useRouter } from "expo-router";
@@ -16,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function SettingsScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { logout } = useAuth();
   const [language, setLanguage] = useState(i18n.locale);
   const [notifications, setNotifications] = useState(true);
 
@@ -25,8 +27,8 @@ export default function SettingsScreen() {
     i18n.locale = newLanguage;
   };
 
-  const handleLogout = () => {
-    alert("Logged out successfully");
+  const handleLogout = async () => {
+    await logout();
     router.replace("/login");
   };
 

@@ -1,4 +1,8 @@
 import DateTimePicker from "@/components/date-picker";
+import {
+  fetchGoldDataPage,
+  type GoldDataRow,
+} from "@/features/dashboard/gold-data";
 import { ThemedView } from "@/components/themed-view";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
@@ -15,89 +19,31 @@ import {
   View,
 } from "react-native";
 
-const tableGoldData = [
-  {
-    id: "1",
-    price: 13000,
-    value: 1,
-    unit: "mace",
-    currency: "VND",
-    releaseDate: "2023-01-01",
-    location: "Location 1",
-    description: "This is a description for Item 1",
-  },
-  {
-    id: "2",
-    price: 13500,
-    value: 1,
-    unit: "mace",
-    currency: "VND",
-    releaseDate: "2023-02-01",
-    location: "Location 2",
-    description: "This is a description for Item 2",
-  },
-  {
-    id: "3",
-    price: 14000,
-    value: 1,
-    unit: "mace",
-    currency: "VND",
-    releaseDate: "2023-03-01",
-    location: "Location 3",
-    description: "This is a description for Item 3",
-  },
-  {
-    id: "4",
-    price: 14500,
-    value: 1,
-    unit: "mace",
-    currency: "VND",
-    releaseDate: "2023-04-01",
-    location: "Location 4",
-    description: "This is a description for Item 4",
-  },
-  {
-    id: "5",
-    price: 15000,
-    value: 1,
-    unit: "mace",
-    currency: "VND",
-    releaseDate: "2023-05-01",
-    location: "Location 5",
-    description: "This is a description for Item 5",
-  },
-  {
-    id: "6",
-    price: 15500,
-    value: 1,
-    unit: "mace",
-    currency: "VND",
-    releaseDate: "2023-06-01",
-    location: "Location 6",
-    description: "This is a description for Item 6",
-  },
-];
-
 export default function DashboardScreen() {
-  const [money, setMoney] = useState(0);
+  const PAGE_SIZE = 20;
+
+  const [tableGoldData, setTableGoldData] = useState<GoldDataRow[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [dataError, setDataError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date("2023-06-01"));
   const [pendingDate, setPendingDate] = useState(new Date("2023-06-01"));
   const [dateInput, setDateInput] = useState("2023-06-01");
   const [showPicker, setShowPicker] = useState(false);
 
-  const filteredRows = useMemo(() => {
-    return tableGoldData.filter(
-      (item) => new Date(item.releaseDate) >= selectedDate,
-    );
-  }, [selectedDate]);
-
   const filteredMoney = useMemo(() => {
-    return sumBy(filteredRows, (item) => item.price * item.value);
-  }, [filteredRows]);
+    return sumBy(tableGoldData, (item) => item.price * item.value);
+  }, [tableGoldData]);
+
+  const money = useMemo(() => {
+    return sumBy(tableGoldData, (item) => item.price * item.value);
+  }, [tableGoldData]);
 
   const totalGold = useMemo(() => {
     return sumBy(tableGoldData, (item) => item.value);
-  }, []);
+  }, [tableGoldData]);
 
   const onPickDate = () => {
     setPendingDate(selectedDate);
@@ -138,10 +84,51 @@ export default function DashboardScreen() {
     }
   };
 
+  const loadGoldData = async (targetPage: number, replace: boolean) => {
+    if (replace) {
+      setIsLoadingData(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    setDataError(null);
+
+    try {
+      const result = await fetchGoldDataPage({
+        fromDate: selectedDate.toISOString().slice(0, 10),
+        page: targetPage,
+        pageSize: PAGE_SIZE,
+      });
+
+      setHasMore(result.hasMore);
+      setPage(targetPage);
+      setTableGoldData((prev) =>
+        replace ? result.rows : [...prev, ...result.rows],
+      );
+    } catch (error) {
+      if (replace) {
+        setTableGoldData([]);
+      }
+      setDataError(error instanceof Error ? error.message : "Unable to load gold data.");
+    } finally {
+      if (replace) {
+        setIsLoadingData(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+    }
+  };
+
   useEffect(() => {
-    const totalMoney = sumBy(tableGoldData, (item) => item.price * item.value);
-    setMoney(totalMoney);
-  }, []);
+    loadGoldData(0, true);
+  }, [selectedDate]);
+
+  const onLoadMore = () => {
+    if (isLoadingData || isLoadingMore || !hasMore) {
+      return;
+    }
+    loadGoldData(page + 1, false);
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -228,6 +215,10 @@ export default function DashboardScreen() {
 
         {/* Table Section */}
         <Text style={styles.tableTitle}>{i18n.t("dashboard.goldRecords")}</Text>
+
+        {isLoadingData && <Text style={styles.infoText}>Loading gold data...</Text>}
+        {dataError && <Text style={styles.errorText}>Failed to load: {dataError}</Text>}
+
         <View style={styles.tableWrapper}>
           <View style={styles.tableHeader}>
             <Text style={[styles.headerCell, styles.col1]}>
@@ -266,6 +257,14 @@ export default function DashboardScreen() {
               </Pressable>
             )}
           />
+
+          {hasMore && (
+            <Pressable style={styles.loadMoreButton} onPress={onLoadMore}>
+              <Text style={styles.loadMoreText}>
+                {isLoadingMore ? "Loading more..." : "Load more"}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </ThemedView>
@@ -423,6 +422,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 12,
     color: "#d4af37",
+  },
+  infoText: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    color: "#6b7280",
+    fontSize: 13,
+  },
+  errorText: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    color: "#dc2626",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  loadMoreButton: {
+    marginTop: 8,
+    marginHorizontal: 12,
+    marginBottom: 8,
+    borderRadius: 8,
+    backgroundColor: "#d4af37",
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  loadMoreText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
   },
   tableWrapper: {
     marginHorizontal: 16,

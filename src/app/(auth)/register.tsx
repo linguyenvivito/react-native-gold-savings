@@ -1,4 +1,6 @@
 import { ThemedView } from "@/components/themed-view";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "expo-router";
 import { Link } from "expo-router";
 import { useState } from "react";
 import {
@@ -16,8 +18,10 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { register } = useAuth();
+  const router = useRouter();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!username || !email || !password || !confirmPassword) {
       alert("Please fill in all fields");
       return;
@@ -26,7 +30,15 @@ export default function RegisterScreen() {
       alert("Passwords do not match");
       return;
     }
-    alert("Registration submitted");
+
+    const success = await register(username, email, password);
+    if (!success) {
+      alert("Registration failed. Email may already be in use.");
+      return;
+    }
+
+    alert("Registration successful. Please check your email confirmation, then login.");
+    router.replace("/(auth)/login");
   };
 
   return (
@@ -112,7 +124,7 @@ export default function RegisterScreen() {
           {/* Login Link */}
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Already have an account? </Text>
-            <Link href="/login" style={styles.loginLink}>
+            <Link href="/(auth)/login" style={styles.loginLink}>
               <Text style={styles.loginLinkText}>Login</Text>
             </Link>
           </View>
