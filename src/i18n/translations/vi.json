@@ -1,7 +1,7 @@
 {
   "tabs": {
     "dashboard": "Bảng Điều Khiển",
-    "assets": "Tài Sản",
+    "assets": "Tích Sản",
     "aiagent": "AI Agent",
     "donate": "Ủng Hộ",
     "settings": "Cài Đặt",
@@ -30,6 +30,7 @@
     "title": "Cài đặt"
   },
   "assets": {
+    "product": "Sản phẩm",
     "title": "Tích sản",
     "buy": "Mua",
     "sell": "Bán",
@@ -41,12 +42,20 @@
     "fen": "Phân",
     "mace": "Chỉ",
     "tael": "Cây",
+    "side": "Tình trạng",
     "releaseDate": "Ngày phát hành",
     "location": "Tiệm vàng",
     "description": "Mô tả",
     "submit": "Gửi dữ liệu vàng",
+    "calculate": "Tính ngay",
     "savedGoldData": "Dữ liệu vàng đã lưu",
-    "totalMoney": "Tổng tiền"
+    "totalMoney": "Tổng tiền",
+    "totalInvestment": "Tổng vốn đầu tư",
+    "estimatedTotalAssets": "Tổng tài sản ước tính",
+    "XAU_24K": "Vàng 24K",
+    "XAU_9999": "Vàng 9999",
+    "RING": "Vàng nhẫn",
+    "BAR": "Vàng miếng"
   },
   "app": {
     "name": "Tiết Kiệm Vàng",

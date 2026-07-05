@@ -30,6 +30,7 @@
     "title": "Settings"
   },
   "assets": {
+    "product": "Product",
     "title": "Assets",
     "buy": "Buy",
     "sell": "Sell",
@@ -40,12 +41,20 @@
     "fen": "Fen",
     "mace": "Mace",
     "tael": "Tael",
+    "side": "Side",
     "releaseDate": "Release Date",
     "location": "Location",
     "description": "Description",
     "submit": "Submit to Gold Data",
+    "calculate": "Calculate",
     "savedGoldData": "Saved Gold Data",
-    "totalMoney": "Total Money"
+    "totalMoney": "Total Money",
+    "totalInvestment": "Total Investment",
+    "estimatedTotalAssets": "Estimated Total Assets",
+    "XAU_24K": "24K Gold",
+    "XAU_9999": "9999 Gold",
+    "RING": "Gold Ring",
+    "BAR": "Gold Bar"
   },
   "app": {
     "name": "Gold Savings",

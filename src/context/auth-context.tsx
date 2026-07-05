@@ -7,6 +7,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (username: string, email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  currentUser: any;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const applySessionState = (hasSession: boolean) => {
     setIsLoggedIn(hasSession);
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       applySessionState(Boolean(data.session));
+      setCurrentUser(data.session?.user ?? null);
       setIsLoading(false);
     };
 
@@ -52,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       applySessionState(Boolean(session));
+      setCurrentUser(session?.user ?? null);
     });
 
     return () => {
@@ -80,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const hasSession = Boolean(data.session);
     applySessionState(hasSession);
+    setCurrentUser(data.session?.user ?? null);
     return hasSession;
   };
 
@@ -109,12 +114,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // If email confirmation is disabled, a session may already exist.
     applySessionState(Boolean(data.session));
+    setCurrentUser(data.session?.user ?? null);
     return true;
   };
 
   const logout = async () => {
     if (!supabase) {
       setIsLoggedIn(false);
+      setCurrentUser(null);
       return;
     }
 
@@ -124,10 +131,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setIsLoggedIn(false);
+    setCurrentUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, isLoading, login, register, logout, currentUser }}>
       {children}
     </AuthContext.Provider>
   );
