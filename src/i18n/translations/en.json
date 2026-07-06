@@ -19,7 +19,9 @@
     "price": "Price",
     "value": "Value",
     "unit": "Unit",
-    "date": "Date"
+    "date": "Date",
+    "yourSubscriptionStorage": "Your Subscription Storage",
+    "worldGoldPrice": "World Gold Price"
   },
   "auth": {
     "login": "Login",
@@ -27,7 +29,20 @@
     "forgotPassword": "Forgot Password"
   },
   "settings": {
-    "title": "Settings"
+    "title": "Settings",
+    "account": "Account",
+    "profileInformation": "Profile Information",
+    "changePassword": "Change Password",
+    "preferences": "Preferences",
+    "language": "Language",
+    "english": "English",
+    "vietnamese": "Vietnamese",
+    "notifications": "Notifications",
+    "app": "App",
+    "appVersion": "App Version",
+    "aboutGoldSavings": "About Gold Savings",
+    "privacyPolicy": "Privacy Policy",
+    "logout": "Logout"
   },
   "assets": {
     "product": "Product",

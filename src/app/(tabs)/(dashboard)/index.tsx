@@ -3,13 +3,14 @@ import {
   fetchGoldDataPage,
   type GoldDataRow,
 } from "@/features/dashboard/gold-data";
+import { Store } from "@/features/store/store.type";
 import { ThemedView } from "@/components/themed-view";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useEffect, useMemo, useState } from "react";
 import {
-  FlatList,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -18,6 +19,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+import StoreCard from "./store-card";
+import { getStores } from "@/features/store/store.router";
 
 export default function DashboardScreen() {
   const PAGE_SIZE = 20;
@@ -32,6 +35,7 @@ export default function DashboardScreen() {
   const [pendingDate, setPendingDate] = useState(new Date("2023-06-01"));
   const [dateInput, setDateInput] = useState("2023-06-01");
   const [showPicker, setShowPicker] = useState(false);
+  const [stores, setStores] = useState<Store[]>([]);
 
   const filteredMoney = useMemo(() => {
     return sumBy(tableGoldData, (item) => item.price * item.value);
@@ -43,6 +47,13 @@ export default function DashboardScreen() {
 
   const totalGold = useMemo(() => {
     return sumBy(tableGoldData, (item) => item.value);
+  }, [tableGoldData]);
+
+  const latestWorldPrice = useMemo(() => {
+    if (!tableGoldData.length) {
+      return null;
+    }
+    return tableGoldData[0];
   }, [tableGoldData]);
 
   const onPickDate = () => {
@@ -109,7 +120,9 @@ export default function DashboardScreen() {
       if (replace) {
         setTableGoldData([]);
       }
-      setDataError(error instanceof Error ? error.message : "Unable to load gold data.");
+      setDataError(
+        error instanceof Error ? error.message : "Unable to load gold data.",
+      );
     } finally {
       if (replace) {
         setIsLoadingData(false);
@@ -119,9 +132,22 @@ export default function DashboardScreen() {
     }
   };
 
+  const loadStoreData = async () => {
+    try {
+      const result = await getStores();
+      setStores(result);
+    } catch (error) {
+      console.error("Failed to load stores:", error);
+    }
+  };
+
   useEffect(() => {
     loadGoldData(0, true);
   }, [selectedDate]);
+
+  useEffect(() => {
+    loadStoreData();
+  }, []);
 
   const onLoadMore = () => {
     if (isLoadingData || isLoadingMore || !hasMore) {
@@ -130,6 +156,20 @@ export default function DashboardScreen() {
     loadGoldData(page + 1, false);
   };
 
+  const tradingViewUrl = "https://www.tradingview.com/symbols/GOLD/";
+  const NativeWebView =
+    Platform.OS === "ios" || Platform.OS === "android"
+      ? require("react-native-webview").WebView
+      : null;
+
+  const openTradingView = async () => {
+    try {
+      await Linking.openURL(tradingViewUrl);
+    } catch (error) {
+      console.error("Failed to open gold price chart:", error);
+    }
+  };
+  
   return (
     <ThemedView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -140,132 +180,55 @@ export default function DashboardScreen() {
         <View style={styles.statsContainer}>
           {/* Total Money Card */}
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>{i18n.t("assets.totalMoney")}</Text>
+            <Text style={styles.statLabel}>
+              {i18n.t("assets.estimatedTotalAssets")}
+            </Text>
             <Text style={styles.statValue}>{formatVND(money)}</Text>
           </View>
-
-          {/* Total Gold Card */}
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>
-              {i18n.t("dashboard.totalGold")}
-            </Text>
-            <Text style={styles.statValue}>{totalGold} oz</Text>
-          </View>
         </View>
 
-        {/* Filter Section */}
+        {/* Your subscription storage Section */}
+        <Text style={styles.tableTitle}>
+          {i18n.t("dashboard.yourSubscriptionStorage")}
+        </Text>
+
         <View style={styles.filterCard}>
-          <Text style={styles.filterLabel}>
-            {i18n.t("dashboard.filterByDate")}
-          </Text>
-          <View style={styles.filterContent}>
-            <View style={styles.dateDisplay}>
-              <Text style={styles.dateLabel}>{i18n.t("dashboard.from")}:</Text>
-              <TextInput
-                style={styles.dateInput}
-                value={dateInput}
-                onChangeText={onDateInputChange}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#9ca3af"
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
-              />
-            </View>
-            {!showPicker && (
-              <Pressable style={styles.dateButton} onPress={onPickDate}>
-                <Text style={styles.dateButtonText}>
-                  {i18n.t("dashboard.pickDate")}
-                </Text>
-              </Pressable>
-            )}
-          </View>
-
-          {showPicker && (
-            <View style={styles.pickerContainer}>
-              <DateTimePicker
-                value={pendingDate}
-                onChange={onChangeDate}
-                maximumDate={new Date()}
-              />
-              {Platform.OS !== "android" && (
-                <View style={styles.pickerActions}>
-                  <Pressable style={styles.cancelButton} onPress={onCancel}>
-                    <Text style={styles.cancelButtonText}>
-                      {i18n.t("common.cancel")}
-                    </Text>
-                  </Pressable>
-                  <Pressable style={styles.applyButton} onPress={onApply}>
-                    <Text style={styles.applyButtonText}>
-                      {i18n.t("common.apply")}
-                    </Text>
-                  </Pressable>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* Filtered Money */}
-          <View style={styles.filteredResult}>
-            <Text style={styles.resultLabel}>
-              {i18n.t("dashboard.filteredMoney")}
-            </Text>
-            <Text style={styles.resultValue}>{formatVND(filteredMoney)}</Text>
+          <View style={{ paddingHorizontal: 15, paddingBottom: 30 }}>
+            {stores.map((item) => (
+              <StoreCard key={item.id.toString()} store={item} />
+            ))}
           </View>
         </View>
 
-        {/* Table Section */}
-        <Text style={styles.tableTitle}>{i18n.t("dashboard.goldRecords")}</Text>
+        {/* Header */}
+        <Text style={styles.screenTitle}>
+          {i18n.t("dashboard.worldGoldPrice")}
+        </Text>
 
-        {isLoadingData && <Text style={styles.infoText}>Loading gold data...</Text>}
-        {dataError && <Text style={styles.errorText}>Failed to load: {dataError}</Text>}
-
-        <View style={styles.tableWrapper}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.headerCell, styles.col1]}>
-              {i18n.t("assets.price")}
-            </Text>
-            <Text style={[styles.headerCell, styles.col2]}>
-              {i18n.t("assets.value")}
-            </Text>
-            <Text style={[styles.headerCell, styles.col3]}>
-              {i18n.t("assets.unit")}
-            </Text>
-            <Text style={[styles.headerCell, styles.col4]}>
-              {i18n.t("assets.releaseDate")}
-            </Text>
-          </View>
-
-          <FlatList
-            scrollEnabled={false}
-            data={tableGoldData}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            renderItem={({ item }) => (
-              <Pressable>
-                <View style={styles.tableRow}>
-                  <Text style={[styles.cell, styles.col1]}>
-                    {formatVND(item.price)}
-                  </Text>
-                  <Text style={[styles.cell, styles.col2]}>{item.value}</Text>
-                  <Text style={[styles.cell, styles.col3]} numberOfLines={1}>
-                    {item.unit}
-                  </Text>
-                  <Text style={[styles.cell, styles.col4]}>
-                    {item.releaseDate}
-                  </Text>
-                </View>
-              </Pressable>
-            )}
-          />
-
-          {hasMore && (
-            <Pressable style={styles.loadMoreButton} onPress={onLoadMore}>
-              <Text style={styles.loadMoreText}>
-                {isLoadingMore ? "Loading more..." : "Load more"}
+        {/* World Gold Price Card */}
+        <View style={styles.goldsContainer}>
+          {NativeWebView ? (
+            <View pointerEvents="none" style={styles.webViewWrapper}>
+              <NativeWebView
+                source={{ uri: tradingViewUrl }}
+                javaScriptEnabled
+                domStorageEnabled
+                scrollEnabled={false}
+                style={styles.webView}
+              />
+            </View>
+          ) : (
+            <View style={styles.chartFallbackCard}>
+              <Text style={styles.infoText}>
+                {i18n.t("dashboard.liveChartUnavailable")}
               </Text>
-            </Pressable>
+              <Pressable style={styles.dateButton} onPress={openTradingView}>
+                <Text style={styles.dateButtonText}>{i18n.t("dashboard.openGoldChart")}</Text>
+              </Pressable>
+            </View>
           )}
         </View>
+
       </ScrollView>
     </ThemedView>
   );
@@ -289,6 +252,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     gap: 12,
   },
+  goldsContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 30,
+    gap: 20,
+    height: 400,
+  },
   statCard: {
     backgroundColor: "#ffffff",
     borderRadius: 10,
@@ -306,6 +275,45 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: "#d4af37",
+  },
+  worldPriceValue: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#b8860b",
+    marginBottom: 8,
+  },
+  worldMetaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  worldMetaText: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "600",
+  },
+  worldLocationText: {
+    fontSize: 13,
+    color: "#374151",
+  },
+  webViewWrapper: {
+    height: 370,
+    borderRadius: 10,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#ffffff",
+  },
+  webView: {
+    flex: 1,
+  },
+  chartFallbackCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    gap: 12,
   },
   filterCard: {
     backgroundColor: "#ffffff",

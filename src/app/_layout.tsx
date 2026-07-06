@@ -10,6 +10,7 @@ import { useColorScheme } from "react-native";
 
 import SplashScreenComponent from "@/components/splash-screen";
 import { AuthProvider, useAuth } from "@/context/auth-context";
+import { LocaleProvider, useLocale } from "@/context/locale-context";
 
 ExpoSplashScreen.preventAutoHideAsync();
 
@@ -40,6 +41,23 @@ function RootNavigator() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  return (
+    <LocaleProvider>
+      <RootLayoutContent colorScheme={colorScheme} />
+    </LocaleProvider>
+  );
+}
+
+function RootLayoutContent({
+  colorScheme,
+}: {
+  colorScheme: "light" | "dark" | null | undefined;
+}) {
+  const { isReady } = useLocale();
+
+  if (!isReady) {
+    return null;
+  }
 
   return (
     <AuthProvider>

@@ -9,8 +9,6 @@ import i18n from "@/i18n";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Button,
-  FlatList,
   Modal,
   Platform,
   Pressable,
@@ -23,7 +21,7 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { testAccounts } from "@/features/auth/account.type";
 import { GoldTempRow } from "@/features/asset/gold.type";
-import { Order, testOrders } from "@/features/order/order.type";
+import { getOrders } from "@/features/order/order.router";
 import { testAssets } from "@/features/asset/asset.type";
 import { formatDate } from "@/features/shared/utils";
 
@@ -46,19 +44,32 @@ export default function AssetScreen() {
   const { currentUser } = useAuth();
 
   const filteredMoney = useMemo(() => {
-    return sumBy(tableGoldData, (item) => (item.side === "buy" ? 1 : 0) * item.price * item.quantity);
+    return sumBy(
+      tableGoldData,
+      (item) => (item.side === "buy" ? 1 : 0) * item.price * item.quantity,
+    );
   }, [tableGoldData]);
 
   const estimatedMoney = useMemo(() => {
-    return sumBy(tableGoldData, (item) => (item.side === "buy" ? 1 : 0) * (todayPrice ?? 0) * item.quantity);
+    return sumBy(
+      tableGoldData,
+      (item) =>
+        (item.side === "buy" ? 1 : 0) * (todayPrice ?? 0) * item.quantity,
+    );
   }, [tableGoldData, todayPrice]);
 
   const money = useMemo(() => {
-    return sumBy(tableGoldData, (item) => (item.side === "buy" ? 1 : 0) * item.price * item.quantity);
+    return sumBy(
+      tableGoldData,
+      (item) => (item.side === "buy" ? 1 : 0) * item.price * item.quantity,
+    );
   }, [tableGoldData]);
 
   const totalGold = useMemo(() => {
-    return sumBy(tableGoldData, (item) => (item.side === "buy" ? 1 : 0) * item.quantity);
+    return sumBy(
+      tableGoldData,
+      (item) => (item.side === "buy" ? 1 : 0) * item.quantity,
+    );
   }, [tableGoldData]);
 
   const onPickDate = () => {
@@ -142,26 +153,46 @@ export default function AssetScreen() {
       setIsLoadingMore(true);
     }
 
-    const goldTempData = testOrders.map((order) => ({
-      id: order.id.toString(),
-      code:
-        testAssets.find((asset) => asset.id === order.assetId.toString())
-          ?.code ?? "unknown",
-      type:
-        testAssets.find((asset) => asset.id === order.assetId.toString())
-          ?.type ?? "unknown",
-      price: order.price,
-      unit:
-        testAssets.find((asset) => asset.id === order.assetId.toString())
-          ?.unit ?? "unknown",
-      side: order.side.toLowerCase(),
-      releaseDate: order.createdAt,
-      location: "Test Location",
-      description: "Test Description",
-      quantity: order.quantity,
-    }));
+    setDataError(null);
 
-    setTableGoldData(goldTempData);
+    try {
+      const orders = await getOrders();
+      const goldTempData = orders.map((order) => ({
+        id: order.id.toString(),
+        code:
+          testAssets.find((asset) => asset.id === order.assetId.toString())
+            ?.code ?? "unknown",
+        type:
+          testAssets.find((asset) => asset.id === order.assetId.toString())
+            ?.type ?? "unknown",
+        price: order.price,
+        unit:
+          testAssets.find((asset) => asset.id === order.assetId.toString())
+            ?.unit ?? "unknown",
+        side: order.side.toLowerCase(),
+        releaseDate: order.createdAt,
+        location: "Test Location",
+        description: "Test Description",
+        quantity: order.quantity,
+      }));
+
+      setHasMore(false);
+      setPage(targetPage);
+      setTableGoldData(goldTempData);
+    } catch (error) {
+      if (replace) {
+        setTableGoldData([]);
+      }
+      setDataError(
+        error instanceof Error ? error.message : "Unable to load orders.",
+      );
+    } finally {
+      if (replace) {
+        setIsLoadingData(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -187,44 +218,65 @@ export default function AssetScreen() {
         <View style={styles.statsContainer}>
           {/* Estimated Total Assets Card */}
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>{i18n.t("assets.estimatedTotalAssets")}</Text>
+            <Text style={styles.statLabel}>
+              {i18n.t("assets.estimatedTotalAssets")}
+            </Text>
             <Text style={styles.statValue}>{formatVND(estimatedMoney)}</Text>
-                    {/* Trigger Button */}
-      <Button 
-        title="Open Modal" 
-        onPress={() => setModalVisible(true)} 
-      />
+            <Pressable
+              style={styles.modalTriggerButton}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={styles.modalTriggerText}>Set Today Price</Text>
+            </Pressable>
 
-      {/* Modal Component */}
-      <Modal
-        animationType="slide" // Options: 'none', 'slide', 'fade'
-        transparent={true}    // Allows background overlay to show through
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)} // Handles hardware back button (Android)
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <TextInput
-              placeholder="Enter today's price"
-              style={styles.dateInput}
-              value={todayPrice !== null ? todayPrice.toString() : ""}
-              onChangeText={(text) => setTodayPrice(text !== "" ? parseFloat(text) : null)}
-            />
-            
-            {/* Close Button */}
-            <Button 
-              title="Close Modal" 
-              onPress={() => setModalVisible(false)} 
-            />
-          </View>
-        </View>
-      </Modal>
-            
+            {/* Modal Component */}
+            <Modal
+              animationType="slide" // Options: 'none', 'slide', 'fade'
+              transparent={true} // Allows background overlay to show through
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)} // Handles hardware back button (Android)
+            >
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <Text style={styles.modalTitle}>Today's Gold Price</Text>
+                  <Text style={styles.modalSubtitle}>
+                    Enter price per {i18n.t("assets.mace")} to update estimate.
+                  </Text>
+                  <TextInput
+                    placeholder="Enter today's price"
+                    style={styles.modalInput}
+                    placeholderTextColor="#9ca3af"
+                    value={todayPrice !== null ? todayPrice.toString() : ""}
+                    onChangeText={(text) =>
+                      setTodayPrice(text !== "" ? parseFloat(text) : null)
+                    }
+                    keyboardType="decimal-pad"
+                  />
+
+                  <View style={styles.modalActions}>
+                    <Pressable
+                      style={[styles.modalActionButton, styles.modalCancelButton]}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <Text style={styles.modalCancelText}>Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.modalActionButton, styles.modalSaveButton]}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <Text style={styles.modalSaveText}>Apply</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            </Modal>
           </View>
 
           {/* Total Investment Card */}
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>{i18n.t("assets.totalInvestment")}</Text>
+            <Text style={styles.statLabel}>
+              {i18n.t("assets.totalInvestment")}
+            </Text>
             <Text style={styles.statValue}>{formatVND(money)}</Text>
           </View>
 
@@ -233,7 +285,9 @@ export default function AssetScreen() {
             <Text style={styles.statLabel}>
               {i18n.t("dashboard.totalGold")}
             </Text>
-            <Text style={styles.statValue}>{totalGold} {i18n.t("assets.mace")}</Text>
+            <Text style={styles.statValue}>
+              {totalGold} {i18n.t("assets.mace")}
+            </Text>
           </View>
         </View>
 
@@ -324,32 +378,46 @@ export default function AssetScreen() {
             </Text>
           </View>
 
-          <FlatList
-            scrollEnabled={false}
-            data={tableGoldData}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
-            renderItem={({ item }) => (
-              <Pressable>
+          <View style={styles.listContent}>
+            {tableGoldData.map((item) => (
+              <Pressable key={item.id.toString()}>
                 <View style={styles.tableRow}>
-                  <Text style={[styles.cell, styles.col1, item.side === "buy" ? styles.sideBuy : styles.sideSell]}>
+                  <Text
+                    style={[
+                      styles.cell,
+                      styles.col1,
+                      item.side === "buy" ? styles.sideBuy : styles.sideSell,
+                    ]}
+                  >
                     {i18n.t("assets." + item.code)} -{" "}
                     {i18n.t("assets." + item.type)}
                   </Text>
-                  <Text style={[styles.cell, styles.col2, item.side === "buy" ? styles.sideBuy : styles.sideSell]}>
+                  <Text
+                    style={[
+                      styles.cell,
+                      styles.col2,
+                      item.side === "buy" ? styles.sideBuy : styles.sideSell,
+                    ]}
+                  >
                     {formatVND(item.price)}
                     {"\n"}
                     {item.quantity}
                     {"/"}
                     {i18n.t("assets." + item.unit)}
                   </Text>
-                  <Text style={[styles.cell, styles.col3, item.side === "buy" ? styles.sideBuy : styles.sideSell]}>
+                  <Text
+                    style={[
+                      styles.cell,
+                      styles.col3,
+                      item.side === "buy" ? styles.sideBuy : styles.sideSell,
+                    ]}
+                  >
                     {i18n.t("assets." + item.side)}
                   </Text>
                 </View>
               </Pressable>
-            )}
-          />
+            ))}
+          </View>
 
           {hasMore && (
             <Pressable style={styles.loadMoreButton} onPress={onLoadMore}>
@@ -371,26 +439,85 @@ const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black overlay
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(17, 24, 39, 0.45)",
   },
   modalView: {
-    width: 300,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    width: "86%",
+    maxWidth: 360,
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5, // Shadow for Android compatibility
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-    fontSize: 18,
+  modalTriggerButton: {
+    marginTop: 12,
+    alignSelf: "flex-start",
+    borderRadius: 8,
+    backgroundColor: "#111827",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  modalTriggerText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#111827",
+    marginBottom: 6,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: "#6b7280",
+    marginBottom: 14,
+  },
+  modalInput: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    backgroundColor: "#f9fafb",
+    borderColor: "#e5e7eb",
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-end",
+  },
+  modalActionButton: {
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  modalCancelButton: {
+    backgroundColor: "#f3f4f6",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+  },
+  modalSaveButton: {
+    backgroundColor: "#d4af37",
+  },
+  modalCancelText: {
+    color: "#374151",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  modalSaveText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
   },
   screenTitle: {
     fontSize: 28,
@@ -479,7 +606,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#d4af37",
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 8
+    borderRadius: 8,
   },
   dateButtonText: {
     color: "#ffffff",

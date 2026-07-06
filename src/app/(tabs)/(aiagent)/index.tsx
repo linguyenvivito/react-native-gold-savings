@@ -5,7 +5,6 @@ import { Picker } from "@react-native-picker/picker";
 import { useMemo, useState } from "react";
 import {
     Alert,
-    FlatList,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -184,29 +183,28 @@ export default function AIAgentScreen() {
         <Text style={styles.sectionTitle}>
           {i18n.t("assets.savedGoldData")}
         </Text>
-        <FlatList
-          scrollEnabled={false}
-          data={goldData}
-          keyExtractor={(item) => item.id}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item }) => (
-            <View style={styles.rowCard}>
-              <Text style={styles.rowTitle}>{formatVND(item.price)}</Text>
-              <Text style={styles.rowText}>
-                {i18n.t("assets.value")}: {item.value}
-              </Text>
-              <Text style={styles.rowText}>
-                {i18n.t("assets.unit")}: {item.unit}
-              </Text>
-              <Text style={styles.rowText}>
-                {i18n.t("assets.releaseDate")}: {item.releaseDate}
-              </Text>
-              <Text style={styles.rowText}>
-                {i18n.t("assets.location")}: {item.location}
-              </Text>
+        <View>
+          {goldData.map((item, index) => (
+            <View key={item.id}>
+              <View style={styles.rowCard}>
+                <Text style={styles.rowTitle}>{formatVND(item.price)}</Text>
+                <Text style={styles.rowText}>
+                  {i18n.t("assets.value")}: {item.value}
+                </Text>
+                <Text style={styles.rowText}>
+                  {i18n.t("assets.unit")}: {item.unit}
+                </Text>
+                <Text style={styles.rowText}>
+                  {i18n.t("assets.releaseDate")}: {item.releaseDate}
+                </Text>
+                <Text style={styles.rowText}>
+                  {i18n.t("assets.location")}: {item.location}
+                </Text>
+              </View>
+              {index < goldData.length - 1 && <View style={styles.separator} />}
             </View>
-          )}
-        />
+          ))}
+        </View>
       </ScrollView>
     </ThemedView>
   );

@@ -19,7 +19,8 @@
     "price": "Giá",
     "value": "Số Lượng",
     "unit": "Đơn Vị",
-    "date": "Ngày"
+    "date": "Ngày",
+    "yourSubscriptionStorage": "Tiệm Vàng"
   },
   "auth": {
     "login": "Đăng nhập",
@@ -27,7 +28,20 @@
     "forgotPassword": "Quên mật khẩu"
   },
   "settings": {
-    "title": "Cài đặt"
+    "title": "Cài đặt",
+    "account": "Tài khoản",
+    "profileInformation": "Thông tin hồ sơ",
+    "changePassword": "Đổi mật khẩu",
+    "preferences": "Tùy chọn",
+    "language": "Ngôn ngữ",
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt",
+    "notifications": "Thông báo",
+    "app": "Ứng dụng",
+    "appVersion": "Phiên bản ứng dụng",
+    "aboutGoldSavings": "Về Gold Savings",
+    "privacyPolicy": "Chính sách quyền riêng tư",
+    "logout": "Đăng xuất"
   },
   "assets": {
     "product": "Sản phẩm",

@@ -1,6 +1,6 @@
 import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "@/context/auth-context";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useLocale } from "@/context/locale-context";
 import i18n from "@/i18n";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -16,20 +16,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
   const { logout } = useAuth();
-  const [language, setLanguage] = useState(i18n.locale);
+  const { locale, toggleLocale } = useLocale();
   const [notifications, setNotifications] = useState(true);
 
-  const handleLanguageToggle = () => {
-    const newLanguage = language === "en" ? "vi" : "en";
-    setLanguage(newLanguage);
-    i18n.locale = newLanguage;
+  const handleLanguageToggle = async () => {
+    await toggleLocale();
+    router.replace("/(auth)/login");
   };
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/login");
+    router.replace("/(auth)/login");
   };
 
   return (
@@ -40,51 +38,59 @@ export default function SettingsScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <Text style={styles.title}>Settings</Text>
+          <Text style={styles.title}>{i18n.t("settings.title")}</Text>
 
           {/* Account Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Account</Text>
+            <Text style={styles.sectionTitle}>{i18n.t("settings.account")}</Text>
             <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>Profile Information</Text>
+              <Text style={styles.settingLabel}>
+                {i18n.t("settings.profileInformation")}
+              </Text>
               <Text style={styles.settingValue}>•••</Text>
             </Pressable>
             <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>Change Password</Text>
+              <Text style={styles.settingLabel}>
+                {i18n.t("settings.changePassword")}
+              </Text>
               <Text style={styles.settingValue}>•••</Text>
             </Pressable>
           </View>
 
           {/* Preferences Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Preferences</Text>
+            <Text style={styles.sectionTitle}>{i18n.t("settings.preferences")}</Text>
 
             {/* Language Setting */}
             <View style={styles.settingItem}>
               <View style={styles.settingLabelContainer}>
-                <Text style={styles.settingLabel}>Language</Text>
+                <Text style={styles.settingLabel}>{i18n.t("settings.language")}</Text>
                 <Text style={styles.settingValue}>
-                  {language === "en" ? "English" : "Tiếng Việt"}
+                  {locale === "en"
+                    ? i18n.t("settings.english")
+                    : i18n.t("settings.vietnamese")}
                 </Text>
               </View>
               <Pressable
                 style={[
                   styles.toggleButton,
                   {
-                    backgroundColor: language === "en" ? "#3b82f6" : "#10b981",
+                    backgroundColor: locale === "en" ? "#3b82f6" : "#10b981",
                   },
                 ]}
                 onPress={handleLanguageToggle}
               >
                 <Text style={styles.toggleButtonText}>
-                  {language === "en" ? "EN" : "VI"}
+                  {locale === "en" ? "EN" : "VI"}
                 </Text>
               </Pressable>
             </View>
 
             {/* Notifications Setting */}
             <View style={styles.settingItem}>
-              <Text style={styles.settingLabel}>Notifications</Text>
+              <Text style={styles.settingLabel}>
+                {i18n.t("settings.notifications")}
+              </Text>
               <Switch
                 value={notifications}
                 onValueChange={setNotifications}
@@ -96,17 +102,19 @@ export default function SettingsScreen() {
 
           {/* App Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>App</Text>
+            <Text style={styles.sectionTitle}>{i18n.t("settings.app")}</Text>
             <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>App Version</Text>
+              <Text style={styles.settingLabel}>{i18n.t("settings.appVersion")}</Text>
               <Text style={styles.settingValue}>1.0.0</Text>
             </Pressable>
             <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>About Gold Savings</Text>
+              <Text style={styles.settingLabel}>
+                {i18n.t("settings.aboutGoldSavings")}
+              </Text>
               <Text style={styles.settingValue}>•••</Text>
             </Pressable>
             <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>Privacy Policy</Text>
+              <Text style={styles.settingLabel}>{i18n.t("settings.privacyPolicy")}</Text>
               <Text style={styles.settingValue}>•••</Text>
             </Pressable>
           </View>
@@ -120,7 +128,7 @@ export default function SettingsScreen() {
               ]}
               onPress={handleLogout}
             >
-              <Text style={styles.logoutButtonText}>Logout</Text>
+              <Text style={styles.logoutButtonText}>{i18n.t("settings.logout")}</Text>
             </Pressable>
           </View>
         </ScrollView>

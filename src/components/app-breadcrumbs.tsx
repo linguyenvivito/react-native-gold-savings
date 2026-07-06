@@ -92,14 +92,7 @@ function BreadcrumbHeader() {
 }
 
 export default function Breadcrumbs() {
-  return (
-    <Stack screenOptions={{ header: () => <BreadcrumbHeader /> }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="login" />
-      <Stack.Screen name="register" />
-      <Stack.Screen name="forgot-password" />
-    </Stack>
-  );
+  return <Stack screenOptions={{ header: () => <BreadcrumbHeader /> }} />;
 }
 
 const styles = StyleSheet.create({
