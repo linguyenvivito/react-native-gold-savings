@@ -1,9 +1,7 @@
 import { useEffect } from "react";
 import {
     Pressable,
-    SafeAreaView,
     ScrollView,
-    StyleSheet,
     Text,
     useColorScheme,
     View,
@@ -13,6 +11,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { AnimatedIcon } from "@/components/animated-icon";
 import { Colors } from "@/constants/theme";
 import i18n from "@/i18n";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface SplashScreenProps {
   onComplete?: () => void;
@@ -23,10 +22,10 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
   const colors = Colors[colorScheme ?? "light"];
 
   useEffect(() => {
-    // Auto-complete splash after 4 seconds
+    // Auto-complete splash after 5 seconds
     const timer = setTimeout(() => {
       onComplete?.();
-    }, 4000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -37,58 +36,60 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      className="absolute inset-0 z-[9999]"
+      style={{ backgroundColor: colors.background }}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerClassName="min-h-full grow items-center justify-center px-5 py-10"
         showsVerticalScrollIndicator={false}
       >
         <Animated.View
           entering={FadeInDown.duration(800)}
-          style={styles.logoContainer}
+          className="mb-8 h-[200px] w-[200px] items-center justify-center"
         >
           <AnimatedIcon />
         </Animated.View>
 
         <Animated.View
           entering={FadeInDown.duration(800).delay(300)}
-          style={styles.infoContainer}
+          className="mb-10 items-center"
         >
-          <Text style={[styles.appTitle, { color: colors.tint }]}>
+          <Text className="mb-2 text-4xl font-bold" style={{ color: colors.tint }}>
             {i18n.t("app.name") || "Gold Savings"}
           </Text>
-          <Text style={[styles.tagline, { color: colors.text }]}>
+          <Text className="text-base" style={{ color: colors.text }}>
             {i18n.t("app.tagline") || "Track Your Golden Investments"}
           </Text>
         </Animated.View>
 
         <Animated.View
           entering={FadeInDown.duration(800).delay(600)}
-          style={styles.detailsContainer}
+          className="mb-8 w-full rounded-xl px-4 py-5"
+          style={{ backgroundColor: "rgba(212, 175, 55, 0.08)" }}
         >
-          <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: colors.text }]}>
+          <View className="flex-row items-center justify-between border-b border-amber-200 py-2.5">
+            <Text className="text-sm font-medium" style={{ color: colors.text }}>
               {i18n.t("app.version") || "Version"}
             </Text>
-            <Text style={[styles.detailValue, { color: colors.tint }]}>
+            <Text className="text-sm font-semibold" style={{ color: colors.tint }}>
               1.0.0
             </Text>
           </View>
 
-          <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: colors.text }]}>
+          <View className="flex-row items-center justify-between border-b border-amber-200 py-2.5">
+            <Text className="text-sm font-medium" style={{ color: colors.text }}>
               {i18n.t("app.developer") || "Developer"}
             </Text>
-            <Text style={[styles.detailValue, { color: colors.tint }]}>
-              Gold Savings Team
+            <Text className="text-sm font-semibold" style={{ color: colors.tint }}>
+              Minh Tuan Nguyen
             </Text>
           </View>
 
-          <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: colors.text }]}>
+          <View className="flex-row items-center justify-between border-b border-amber-200 py-2.5">
+            <Text className="text-sm font-medium" style={{ color: colors.text }}>
               {i18n.t("app.language") || "Language"}
             </Text>
-            <Text style={[styles.detailValue, { color: colors.tint }]}>
+            <Text className="text-sm font-semibold" style={{ color: colors.tint }}>
               {i18n.locale.toUpperCase()}
             </Text>
           </View>
@@ -96,13 +97,14 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
 
         <Animated.View
           entering={FadeInDown.duration(800).delay(900)}
-          style={styles.buttonContainer}
+          className="mb-5 w-full"
         >
           <Pressable
             onPress={handleGetStarted}
-            style={[styles.button, { backgroundColor: colors.tint }]}
+            className="items-center justify-center rounded-lg px-6 py-3.5"
+            style={{ backgroundColor: colors.tint }}
           >
-            <Text style={[styles.buttonText, { color: colors.background }]}>
+            <Text className="text-base font-semibold" style={{ color: colors.background }}>
               {i18n.t("app.getStarted") || "Get Started"}
             </Text>
           </Pressable>
@@ -110,9 +112,9 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
 
         <Animated.View
           entering={FadeInDown.duration(800).delay(1200)}
-          style={styles.footerContainer}
+          className="mt-5"
         >
-          <Text style={[styles.footerText, { color: colors.text }]}>
+          <Text className="text-center text-xs" style={{ color: colors.text }}>
             © 2026 {i18n.t("app.name") || "Gold Savings"}. All rights reserved.
           </Text>
         </Animated.View>
@@ -120,92 +122,3 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 9999,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-  },
-  logoContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  infoContainer: {
-    alignItems: "center",
-    marginBottom: 40,
-  },
-  appTitle: {
-    fontSize: 36,
-    fontWeight: "700",
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  tagline: {
-    fontSize: 16,
-    fontWeight: "400",
-    letterSpacing: 0.3,
-  },
-  detailsContainer: {
-    width: "100%",
-    paddingVertical: 20,
-    marginBottom: 30,
-    borderRadius: 12,
-    backgroundColor: "rgba(212, 175, 55, 0.08)",
-    paddingHorizontal: 16,
-  },
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(212, 175, 55, 0.2)",
-  },
-  detailLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  buttonContainer: {
-    width: "100%",
-    marginBottom: 20,
-  },
-  button: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-  },
-  footerContainer: {
-    marginTop: 20,
-  },
-  footerText: {
-    fontSize: 12,
-    fontWeight: "400",
-    textAlign: "center",
-    letterSpacing: 0.3,
-  },
-});

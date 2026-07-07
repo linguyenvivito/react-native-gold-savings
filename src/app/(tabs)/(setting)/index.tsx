@@ -1,13 +1,13 @@
 import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
+import { useThemeContext } from "@/context/theme-context";
 import i18n from "@/i18n";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   Switch,
   Text,
   View,
@@ -18,6 +18,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { logout } = useAuth();
   const { locale, toggleLocale } = useLocale();
+  const { colorScheme, toggleTheme } = useThemeContext();
   const [notifications, setNotifications] = useState(true);
 
   const handleLanguageToggle = async () => {
@@ -31,66 +32,45 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView className="flex-1 bg-slate-50">
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerClassName="px-4"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <Text style={styles.title}>{i18n.t("settings.title")}</Text>
-
-          {/* Account Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{i18n.t("settings.account")}</Text>
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>
-                {i18n.t("settings.profileInformation")}
-              </Text>
-              <Text style={styles.settingValue}>•••</Text>
+         
+          <View className="mb-6">
+            <Text className="mb-3 text-base font-bold text-slate-700">{i18n.t("settings.account")}</Text>
+            <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <Text className="text-sm font-semibold text-main-primary">{i18n.t("settings.profileInformation")}</Text>
+              <Text className="text-xs font-medium text-slate-400">•••</Text>
             </Pressable>
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>
-                {i18n.t("settings.changePassword")}
-              </Text>
-              <Text style={styles.settingValue}>•••</Text>
+            <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <Text className="text-sm font-semibold text-main-primary">{i18n.t("settings.changePassword")}</Text>
+              <Text className="text-xs font-medium text-slate-400">•••</Text>
             </Pressable>
           </View>
 
-          {/* Preferences Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{i18n.t("settings.preferences")}</Text>
+          <View className="mb-6">
+            <Text className="mb-3 text-base font-bold text-slate-700">{i18n.t("settings.preferences")}</Text>
 
-            {/* Language Setting */}
-            <View style={styles.settingItem}>
-              <View style={styles.settingLabelContainer}>
-                <Text style={styles.settingLabel}>{i18n.t("settings.language")}</Text>
-                <Text style={styles.settingValue}>
-                  {locale === "en"
-                    ? i18n.t("settings.english")
-                    : i18n.t("settings.vietnamese")}
+            <View className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <View className="flex-1">
+                <Text className="mb-1 text-sm font-semibold text-main-primary">{i18n.t("settings.language")}</Text>
+                <Text className="text-xs font-medium text-slate-400">
+                  {locale === "en" ? i18n.t("settings.english") : i18n.t("settings.vietnamese")}
                 </Text>
               </View>
               <Pressable
-                style={[
-                  styles.toggleButton,
-                  {
-                    backgroundColor: locale === "en" ? "#3b82f6" : "#10b981",
-                  },
-                ]}
+                className={`rounded-md px-3 py-1.5 ${locale === "en" ? "bg-blue-500" : "bg-emerald-500"}`}
                 onPress={handleLanguageToggle}
               >
-                <Text style={styles.toggleButtonText}>
-                  {locale === "en" ? "EN" : "VI"}
-                </Text>
+                <Text className="text-xs font-bold text-white">{locale === "en" ? "EN" : "VI"}</Text>
               </Pressable>
             </View>
 
-            {/* Notifications Setting */}
-            <View style={styles.settingItem}>
-              <Text style={styles.settingLabel}>
-                {i18n.t("settings.notifications")}
-              </Text>
+            <View className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <Text className="text-sm font-semibold text-main-primary">{i18n.t("settings.notifications")}</Text>
               <Switch
                 value={notifications}
                 onValueChange={setNotifications}
@@ -98,37 +78,40 @@ export default function SettingsScreen() {
                 thumbColor={notifications ? "#3b82f6" : "#9ca3af"}
               />
             </View>
+
+            <View className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <Text className="text-sm font-semibold text-main-primary">{i18n.t("settings.darkMode")}</Text>
+              <Switch
+                value={colorScheme === "dark"}
+                onValueChange={toggleTheme}
+                trackColor={{ false: "#e5e7eb", true: "#fbbf24" }}
+                thumbColor={colorScheme === "dark" ? "#d4af37" : "#9ca3af"}
+              />
+            </View>
           </View>
 
-          {/* App Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{i18n.t("settings.app")}</Text>
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>{i18n.t("settings.appVersion")}</Text>
-              <Text style={styles.settingValue}>1.0.0</Text>
+          <View className="mb-6">
+            <Text className="mb-3 text-base font-bold text-slate-700">{i18n.t("settings.app")}</Text>
+            <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <Text className="text-sm font-semibold text-main-primary">{i18n.t("settings.appVersion")}</Text>
+              <Text className="text-xs font-medium text-slate-400">1.0.0</Text>
             </Pressable>
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>
-                {i18n.t("settings.aboutGoldSavings")}
-              </Text>
-              <Text style={styles.settingValue}>•••</Text>
+            <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <Text className="text-sm font-semibold text-main-primary">{i18n.t("settings.aboutGoldSavings")}</Text>
+              <Text className="text-xs font-medium text-slate-400">•••</Text>
             </Pressable>
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingLabel}>{i18n.t("settings.privacyPolicy")}</Text>
-              <Text style={styles.settingValue}>•••</Text>
+            <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+              <Text className="text-sm font-semibold text-main-primary">{i18n.t("settings.privacyPolicy")}</Text>
+              <Text className="text-xs font-medium text-slate-400">•••</Text>
             </Pressable>
           </View>
 
-          {/* Logout Button */}
-          <View style={styles.logoutSection}>
+          <View className="mb-10 mt-8">
             <Pressable
-              style={({ pressed }) => [
-                styles.logoutButton,
-                pressed && styles.logoutButtonPressed,
-              ]}
+              className="rounded-xl bg-red-600 px-4 py-3.5 active:bg-red-700"
               onPress={handleLogout}
             >
-              <Text style={styles.logoutButtonText}>{i18n.t("settings.logout")}</Text>
+              <Text className="text-center text-base font-bold text-white">{i18n.t("settings.logout")}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -136,85 +119,3 @@ export default function SettingsScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#d4af37",
-    marginBottom: 24,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#374151",
-    marginBottom: 12,
-  },
-  settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  settingLabelContainer: {
-    flex: 1,
-  },
-  settingLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#d4af37",
-    marginBottom: 4,
-  },
-  settingValue: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#9ca3af",
-  },
-  toggleButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-  },
-  toggleButtonText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  logoutSection: {
-    marginTop: 32,
-    marginBottom: 40,
-  },
-  logoutButton: {
-    backgroundColor: "#dc2626",
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  logoutButtonPressed: {
-    backgroundColor: "#b91c1c",
-    opacity: 0.8,
-  },
-  logoutButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-});

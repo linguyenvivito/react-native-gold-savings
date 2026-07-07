@@ -1,8 +1,4 @@
 import DateTimePicker from "@/components/date-picker";
-import {
-  fetchGoldDataPage,
-  type GoldDataRow,
-} from "@/features/dashboard/gold-data";
 import { ThemedView } from "@/components/themed-view";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
@@ -13,21 +9,18 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { useAuth } from "@/context/auth-context";
-import { testAccounts } from "@/features/auth/account.type";
 import { GoldTempRow } from "@/features/asset/gold.type";
 import { getOrders } from "@/features/order/order.router";
 import { testAssets } from "@/features/asset/asset.type";
-import { formatDate } from "@/features/shared/utils";
+import { SafeAreaView } from "react-native-safe-area-context";
+import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function AssetScreen() {
-  const PAGE_SIZE = 20;
-
   const [tableGoldData, setTableGoldData] = useState<GoldTempRow[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -40,8 +33,6 @@ export default function AssetScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [todayPrice, setTodayPrice] = useState<number | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-
-  const { currentUser } = useAuth();
 
   const filteredMoney = useMemo(() => {
     return sumBy(
@@ -208,553 +199,250 @@ export default function AssetScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
+    <ThemedView className="flex-1 bg-slate-50 font-serif">
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerClassName="px-4"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="mb-5 gap-3 px-4">
+            <View className="rounded-xl border border-slate-200 p-4">
+              <Text className="mb-1 text-xs font-semibold text-slate-500">
+                {i18n.t("assets.estimatedTotalAssets")}
+              </Text>
+              <Text className="text-2xl font-bold text-main-primary">
+                {formatVND(estimatedMoney)}
+              </Text>
+              <Pressable
+                className="mt-3 self-start rounded-lg bg-slate-900 px-3.5 py-2.5"
+                onPress={() => setModalVisible(true)}
+              >
+                <Text className="text-xs font-bold text-white">
+                  {i18n.t("assets.setTodayPrice")}
+                </Text>
+              </Pressable>
 
-        <Text style={styles.screenTitle}>{i18n.t("dashboard.title")}</Text>
+              {/* Modal Component */}
+              <Modal
+                animationType="slide" // Options: 'none', 'slide', 'fade'
+                transparent={true} // Allows background overlay to show through
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)} // Handles hardware back button (Android)
+              >
+                <View className="flex-1 items-center justify-center bg-slate-900/45">
+                  <View className="w-[86%] max-w-[360px] rounded-2xl p-5">
+                    <Text className="mb-1 text-xl font-extrabold text-slate-900">
+                      {i18n.t("assets.todaysGoldPrice")}
+                    </Text>
+                    <Text className="mb-3.5 text-xs text-slate-500">
+                      {i18n.t("assets.enterPricePerMace")}
+                    </Text>
+                    <TextInput
+                      placeholder={i18n.t("assets.enterTodaysPrice")}
+                      className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-base font-bold text-slate-900"
+                      placeholderTextColor="#9ca3af"
+                      value={todayPrice !== null ? todayPrice.toString() : ""}
+                      onChangeText={(text) =>
+                        setTodayPrice(text !== "" ? parseFloat(text) : null)
+                      }
+                      keyboardType="decimal-pad"
+                    />
 
-        {/* Stats Cards */}
-        <View style={styles.statsContainer}>
-          {/* Estimated Total Assets Card */}
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>
-              {i18n.t("assets.estimatedTotalAssets")}
-            </Text>
-            <Text style={styles.statValue}>{formatVND(estimatedMoney)}</Text>
-            <Pressable
-              style={styles.modalTriggerButton}
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={styles.modalTriggerText}>Set Today Price</Text>
-            </Pressable>
-
-            {/* Modal Component */}
-            <Modal
-              animationType="slide" // Options: 'none', 'slide', 'fade'
-              transparent={true} // Allows background overlay to show through
-              visible={modalVisible}
-              onRequestClose={() => setModalVisible(false)} // Handles hardware back button (Android)
-            >
-              <View style={styles.centeredView}>
-                <View style={styles.modalView}>
-                  <Text style={styles.modalTitle}>Today's Gold Price</Text>
-                  <Text style={styles.modalSubtitle}>
-                    Enter price per {i18n.t("assets.mace")} to update estimate.
-                  </Text>
-                  <TextInput
-                    placeholder="Enter today's price"
-                    style={styles.modalInput}
-                    placeholderTextColor="#9ca3af"
-                    value={todayPrice !== null ? todayPrice.toString() : ""}
-                    onChangeText={(text) =>
-                      setTodayPrice(text !== "" ? parseFloat(text) : null)
-                    }
-                    keyboardType="decimal-pad"
-                  />
-
-                  <View style={styles.modalActions}>
-                    <Pressable
-                      style={[styles.modalActionButton, styles.modalCancelButton]}
-                      onPress={() => setModalVisible(false)}
-                    >
-                      <Text style={styles.modalCancelText}>Cancel</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.modalActionButton, styles.modalSaveButton]}
-                      onPress={() => setModalVisible(false)}
-                    >
-                      <Text style={styles.modalSaveText}>Apply</Text>
-                    </Pressable>
+                    <View className="flex-row justify-end gap-2.5">
+                      <Pressable
+                        className="rounded-lg border border-slate-300 bg-slate-100 px-3.5 py-2.5"
+                        onPress={() => setModalVisible(false)}
+                      >
+                        <Text className="text-xs font-bold text-slate-700">
+                          Cancel
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        className="rounded-lg bg-amber-600 px-3.5 py-2.5"
+                        onPress={() => setModalVisible(false)}
+                      >
+                        <Text className="text-xs font-bold text-white">
+                          Apply
+                        </Text>
+                      </Pressable>
+                    </View>
                   </View>
                 </View>
-              </View>
-            </Modal>
-          </View>
-
-          {/* Total Investment Card */}
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>
-              {i18n.t("assets.totalInvestment")}
-            </Text>
-            <Text style={styles.statValue}>{formatVND(money)}</Text>
-          </View>
-
-          {/* Total Gold Card */}
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>
-              {i18n.t("dashboard.totalGold")}
-            </Text>
-            <Text style={styles.statValue}>
-              {totalGold} {i18n.t("assets.mace")}
-            </Text>
-          </View>
-        </View>
-
-        {/* Filter Section */}
-        <View style={styles.filterCard}>
-          <Text style={styles.filterLabel}>
-            {i18n.t("dashboard.filterByDate")}
-          </Text>
-          <View style={styles.filterContent}>
-            <View style={styles.dateDisplay}>
-              <Text style={styles.dateLabel}>{i18n.t("dashboard.from")}:</Text>
-              <TextInput
-                style={styles.dateInput}
-                value={dateInput}
-                onChangeText={onDateInputChange}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#9ca3af"
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
-              />
+              </Modal>
             </View>
-            {!showPicker && (
-              <Pressable style={styles.dateButton} onPress={onPickDate}>
-                <Text style={styles.dateButtonText}>
-                  {i18n.t("dashboard.pickDate")}
+
+            <View className="rounded-xl border border-slate-200 p-4">
+              <Text className="mb-1 text-xs font-semibold text-slate-500">
+                {i18n.t("assets.totalInvestment")}
+              </Text>
+              <Text className="text-2xl font-bold text-main-primary">
+                {formatVND(money)}
+              </Text>
+            </View>
+
+            <View className="rounded-xl border border-slate-200 p-4">
+              <Text className="mb-1 text-xs font-semibold text-slate-500">
+                {i18n.t("dashboard.totalGold")}
+              </Text>
+              <Text className="text-2xl font-bold text-main-primary">
+                {totalGold} {i18n.t("assets.mace")}
+              </Text>
+            </View>
+          </View>
+
+          <View className="mx-4 mb-5 rounded-xl border border-slate-200 p-4">
+            <Text className="mb-3 text-sm font-semibold text-slate-500">
+              {i18n.t("dashboard.filterByDate")}
+            </Text>
+            <View className="mb-3 flex-row items-center gap-2.5">
+              <View className="flex-1 rounded-lg border border-slate-300 bg-slate-100 p-2.5">
+                <Text className="mb-1 text-xs text-slate-500">
+                  {i18n.t("dashboard.from")}:
+                </Text>
+                <TextInput
+                  className="p-0 text-sm font-semibold"
+                  value={dateInput}
+                  onChangeText={onDateInputChange}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#9ca3af"
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={10}
+                />
+              </View>
+              {!showPicker && (
+                <Pressable
+                  className="rounded-lg bg-slate-900 px-3.5 py-2.5"
+                  onPress={onPickDate}
+                >
+                  <Text className="text-xs font-semibold text-white">
+                    {i18n.t("dashboard.pickDate")}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+
+            {showPicker && (
+              <View className={`mb-3 text-xl bg-slate-500 font-mono px-2 py-2.5 rounded-lg`}>
+               <View className="overflow-hidden">
+                <DateTimePicker
+                  display={Platform.OS === "ios" ? "inline" : "default"}
+                  value={pendingDate}
+                  onChange={onChangeDate}
+                  maximumDate={new Date()}
+                />
+                {Platform.OS !== "android" && (
+                  <View className="mt-2 flex-row justify-end gap-2">
+                    <Pressable
+                      className="rounded-lg border border-slate-200 px-4 py-2"
+                      onPress={onCancel}
+                    >
+                      <Text className="text-xs font-semibold text-white">
+                        {i18n.t("common.cancel")}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      className="rounded-lg bg-slate-900 px-4 py-2"
+                      onPress={onApply}
+                    >
+                      <Text className="text-xs font-semibold text-white">
+                        {i18n.t("common.apply")}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+              </View>
+  </View>
+            )}
+
+            <View className="flex-row items-center justify-between rounded-md border-l-4 border-slate-600 bg-slate-100 p-3">
+              <Text className="text-xs font-semibold">
+                {i18n.t("dashboard.filteredMoney")}
+              </Text>
+              <Text className="text-base font-bold text-emerald-700">
+                {formatVND(filteredMoney)}
+              </Text>
+            </View>
+          </View>
+
+          <Text className="mb-3 px-4 text-xl font-bold text-main-primary font-mono">
+            <MaterialCommunityIcons
+              name="gold"
+              size={18}
+              color="#d4af37"
+            /> {i18n.t("dashboard.goldRecords")}
+          </Text>
+
+          {isLoadingData && (
+            <Text className="mb-2 px-4 text-xs text-slate-500">
+              Loading gold data...
+            </Text>
+          )}
+          {dataError && (
+            <Text className="mb-2 px-4 text-xs font-semibold text-red-600">
+              Failed to load: {dataError}
+            </Text>
+          )}
+
+          <View className="mx-4 mb-5 overflow-hidden rounded-lg border border-slate-200">
+            <View className="flex-row border-b border-slate-200 bg-slate-100 py-2.5">
+              <Text className="flex-1 px-2 font-mono text-xs font-bold text-slate-700">
+                {i18n.t("assets.product")}
+              </Text>
+              <Text className="flex-1 px-2 font-mono text-xs font-bold text-slate-700">
+                {i18n.t("assets.price")}
+                {"\n"}
+                {i18n.t("assets.value")}
+                {"/"}
+                {i18n.t("assets.unit")}
+              </Text>
+              <Text className="flex-1 px-2 font-mono text-xs font-bold text-slate-700">
+                {i18n.t("assets.side")}
+              </Text>
+            </View>
+
+            <View className="pb-2 bg-white">
+              {tableGoldData.map((item) => (
+                <Pressable key={item.id.toString()}>
+                  <View className="flex-row border-b border-slate-200 py-2.5">
+                    <Text
+                      className={`flex-1 px-2 text-base ${item.side === "buy" ? "text-emerald-600" : "text-rose-600"}`}
+                    >
+                      {i18n.t("assets." + item.code)} -{" "}
+                      {i18n.t("assets." + item.type)}
+                    </Text>
+                    <Text
+                      className={`flex-1 px-2 text-base ${item.side === "buy" ? "text-emerald-600" : "text-rose-600"}`}
+                    >
+                      <Text className="font-bold">{formatVND(item.price)}</Text>
+                      {"\n"}
+                      <Text className="italic text-sm">
+                        {item.quantity}
+                      {"/"}
+                      {i18n.t("assets." + item.unit)}</Text>
+                    </Text>
+                    <Text
+                      className={`flex-1 px-2 text-base ${item.side === "buy" ? "text-emerald-600" : "text-rose-600"}`}
+                    >
+                      {i18n.t("assets." + item.side)}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+
+            {hasMore && (
+              <Pressable
+                className="mx-3 mb-2 mt-2 items-center rounded-lg bg-amber-600 py-2.5"
+                onPress={onLoadMore}
+              >
+                <Text className="text-xs font-bold text-white">
+                  {isLoadingMore ? "Loading more..." : "Load more"}
                 </Text>
               </Pressable>
             )}
           </View>
-
-          {showPicker && (
-            <View style={styles.pickerContainer}>
-              <DateTimePicker
-                value={pendingDate}
-                onChange={onChangeDate}
-                maximumDate={new Date()}
-              />
-              {Platform.OS !== "android" && (
-                <View style={styles.pickerActions}>
-                  <Pressable style={styles.cancelButton} onPress={onCancel}>
-                    <Text style={styles.cancelButtonText}>
-                      {i18n.t("common.cancel")}
-                    </Text>
-                  </Pressable>
-                  <Pressable style={styles.applyButton} onPress={onApply}>
-                    <Text style={styles.applyButtonText}>
-                      {i18n.t("common.apply")}
-                    </Text>
-                  </Pressable>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* Filtered Money */}
-          <View style={styles.filteredResult}>
-            <Text style={styles.resultLabel}>
-              {i18n.t("dashboard.filteredMoney")}
-            </Text>
-            <Text style={styles.resultValue}>{formatVND(filteredMoney)}</Text>
-          </View>
-        </View>
-
-        {/* Table Section */}
-        <Text style={styles.tableTitle}>{i18n.t("dashboard.goldRecords")}</Text>
-
-        {isLoadingData && (
-          <Text style={styles.infoText}>Loading gold data...</Text>
-        )}
-        {dataError && (
-          <Text style={styles.errorText}>Failed to load: {dataError}</Text>
-        )}
-
-        <View style={styles.tableWrapper}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.headerCell, styles.col1]}>
-              {i18n.t("assets.product")}
-            </Text>
-            <Text style={[styles.headerCell, styles.col2]}>
-              {i18n.t("assets.price")}
-              {"\n"}
-              {i18n.t("assets.value")}
-              {"/"}
-              {i18n.t("assets.unit")}
-            </Text>
-            <Text style={[styles.headerCell, styles.col3]}>
-              {i18n.t("assets.side")}
-            </Text>
-          </View>
-
-          <View style={styles.listContent}>
-            {tableGoldData.map((item) => (
-              <Pressable key={item.id.toString()}>
-                <View style={styles.tableRow}>
-                  <Text
-                    style={[
-                      styles.cell,
-                      styles.col1,
-                      item.side === "buy" ? styles.sideBuy : styles.sideSell,
-                    ]}
-                  >
-                    {i18n.t("assets." + item.code)} -{" "}
-                    {i18n.t("assets." + item.type)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.cell,
-                      styles.col2,
-                      item.side === "buy" ? styles.sideBuy : styles.sideSell,
-                    ]}
-                  >
-                    {formatVND(item.price)}
-                    {"\n"}
-                    {item.quantity}
-                    {"/"}
-                    {i18n.t("assets." + item.unit)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.cell,
-                      styles.col3,
-                      item.side === "buy" ? styles.sideBuy : styles.sideSell,
-                    ]}
-                  >
-                    {i18n.t("assets." + item.side)}
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-
-          {hasMore && (
-            <Pressable style={styles.loadMoreButton} onPress={onLoadMore}>
-              <Text style={styles.loadMoreText}>
-                {isLoadingMore ? "Loading more..." : "Load more"}
-              </Text>
-            </Pressable>
-          )}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </SafeAreaView>
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(17, 24, 39, 0.45)",
-  },
-  modalView: {
-    width: "86%",
-    maxWidth: 360,
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  modalTriggerButton: {
-    marginTop: 12,
-    alignSelf: "flex-start",
-    borderRadius: 8,
-    backgroundColor: "#111827",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  modalTriggerText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#111827",
-    marginBottom: 6,
-  },
-  modalSubtitle: {
-    fontSize: 13,
-    color: "#6b7280",
-    marginBottom: 14,
-  },
-  modalInput: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111827",
-    backgroundColor: "#f9fafb",
-    borderColor: "#e5e7eb",
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-  },
-  modalActions: {
-    flexDirection: "row",
-    gap: 10,
-    justifyContent: "flex-end",
-  },
-  modalActionButton: {
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  modalCancelButton: {
-    backgroundColor: "#f3f4f6",
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-  },
-  modalSaveButton: {
-    backgroundColor: "#d4af37",
-  },
-  modalCancelText: {
-    color: "#374151",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  modalSaveText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  screenTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 20,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    color: "#d4af37",
-  },
-  statsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 20,
-    gap: 12,
-  },
-  statCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  statLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#6b7280",
-    marginBottom: 6,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#d4af37",
-  },
-  filterCard: {
-    backgroundColor: "#ffffff",
-    marginHorizontal: 16,
-    marginBottom: 20,
-    borderRadius: 10,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#d4af37",
-    marginBottom: 12,
-  },
-  filterContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 12,
-  },
-  dateDisplay: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-  },
-  dateLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginBottom: 4,
-  },
-  dateValue: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#d4af37",
-  },
-  dateInput: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#d4af37",
-    padding: 0,
-  },
-  calculateButton: {
-    backgroundColor: "#d4af37",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    gap: 8,
-  },
-  dateButton: {
-    backgroundColor: "#d4af37",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
-  dateButtonText: {
-    color: "#ffffff",
-    fontWeight: "600",
-    fontSize: 13,
-  },
-  pickerContainer: {
-    marginBottom: 12,
-  },
-  pickerActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 8,
-    marginTop: 8,
-  },
-  cancelButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    backgroundColor: "#ffffff",
-  },
-  cancelButtonText: {
-    color: "#374151",
-    fontWeight: "600",
-    fontSize: 13,
-  },
-  applyButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: "#d4af37",
-  },
-  applyButtonText: {
-    color: "#ffffff",
-    fontWeight: "600",
-    fontSize: 13,
-  },
-  filteredResult: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#fffbf0",
-    borderLeftWidth: 4,
-    borderLeftColor: "#d4af37",
-    padding: 12,
-    borderRadius: 6,
-  },
-  resultLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#b8860b",
-  },
-  resultValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#b8860b",
-  },
-  tableTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    color: "#d4af37",
-  },
-  infoText: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    color: "#6b7280",
-    fontSize: 13,
-  },
-  errorText: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    color: "#dc2626",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  loadMoreButton: {
-    marginTop: 8,
-    marginHorizontal: 12,
-    marginBottom: 8,
-    borderRadius: 8,
-    backgroundColor: "#d4af37",
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  loadMoreText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  tableWrapper: {
-    marginHorizontal: 16,
-    marginBottom: 20,
-    borderRadius: 8,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#f3f4f6",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    paddingVertical: 10,
-  },
-  tableRow: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
-    paddingVertical: 10,
-    backgroundColor: "#ffffff",
-  },
-  headerCell: {
-    fontWeight: "700",
-    fontSize: 12,
-    paddingHorizontal: 8,
-    color: "#374151",
-  },
-  cell: {
-    fontSize: 13,
-    paddingHorizontal: 8,
-    color: "#d4af37",
-  },
-  sideBuy: {
-    color: "#00C853",
-  },
-  sideSell: {
-    color: "#FF1744",
-  },
-  col1: {
-    flex: 1,
-  },
-  col2: {
-    flex: 1,
-  },
-  col3: {
-    flex: 1,
-  },
-  col4: {
-    flex: 1,
-  },
-  col5: {
-    flex: 1,
-  },
-  listContent: {
-    paddingBottom: 8,
-  },
-});

@@ -5,7 +5,8 @@
     "aiagent": "AI Agent",
     "donate": "Ủng Hộ",
     "settings": "Cài Đặt",
-    "auth": "Tài Khoản"
+    "auth": "Tài Khoản",
+    "market": "Thị Trường"
   },
   "dashboard": {
     "title": "Bảng Điều Khiển",
@@ -15,17 +16,15 @@
     "pickDate": "Chọn Ngày",
     "from": "Từ",
     "filteredMoney": "Tiền Đã Lọc",
-    "goldRecords": "Hồ Sơ Vàng",
+    "goldRecords": "Ví vàng",
     "price": "Giá",
     "value": "Số Lượng",
     "unit": "Đơn Vị",
     "date": "Ngày",
-    "yourSubscriptionStorage": "Tiệm Vàng"
-  },
-  "auth": {
-    "login": "Đăng nhập",
-    "register": "Đăng ký",
-    "forgotPassword": "Quên mật khẩu"
+    "yourSubscriptionStorage": "Tiệm Vàng",
+    "worldGoldPrice": "Giá Vàng Thế Giới",
+    "appName": "Tiết Kiệm Vàng",
+    "rightColumnMessage": "Hỗ Trợ Tôi!"
   },
   "settings": {
     "title": "Cài đặt",
@@ -37,6 +36,7 @@
     "english": "Tiếng Anh",
     "vietnamese": "Tiếng Việt",
     "notifications": "Thông báo",
+    "darkMode": "Chế độ tối",
     "app": "Ứng dụng",
     "appVersion": "Phiên bản ứng dụng",
     "aboutGoldSavings": "Về Gold Savings",
@@ -69,7 +69,11 @@
     "XAU_24K": "Vàng 24K",
     "XAU_9999": "Vàng 9999",
     "RING": "Vàng nhẫn",
-    "BAR": "Vàng miếng"
+    "BAR": "Vàng miếng",
+    "setTodayPrice": "Đặt giá vàng hôm nay",
+    "enterTodaysPrice": "Nhập giá vàng hôm nay",
+    "todaysGoldPrice": "Giá vàng hôm nay",
+    "enterPricePerMace": "Nhập giá vàng theo đơn vị `Chỉ vàng` để cập nhật ước tính."
   },
   "app": {
     "name": "Tiết Kiệm Vàng",
@@ -78,6 +82,32 @@
     "developer": "Nhà Phát Triển",
     "language": "Ngôn Ngữ",
     "getStarted": "Bắt Đầu"
+  },
+  "auth": {
+    "welcomeBack": "Chào mừng bạn trở lại!",
+    "signIn": "Đăng nhập vào tài khoản của bạn",
+    "signUp": "Đăng ký tài khoản mới",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "forgotPassword": "Quên mật khẩu",
+    "resetPassword": "Đặt lại mật khẩu",
+    "enterEmailForReset": "Nhập email của bạn để nhận liên kết đặt lại mật khẩu",
+    "sendResetLink": "Gửi liên kết đặt lại",
+    "checkYourEmail": "Kiểm tra email của bạn",
+    "passwordResetLinkSent": "Chúng tôi đã gửi liên kết đặt lại mật khẩu đến {email}. Vui lòng kiểm tra hộp thư đến của bạn và làm theo hướng dẫn để đặt lại mật khẩu.",
+    "rememberYourPassword": "Nhớ mật khẩu của bạn?",
+    "username": "Tên đăng nhập",
+    "enterUsername": "Nhập tên đăng nhập của bạn",
+    "email": "Email",
+    "enterEmail": "Nhập email của bạn",
+    "password": "Mật khẩu",
+    "enterPassword": "Nhập mật khẩu của bạn",
+    "noAccount": "Chưa có tài khoản?",
+    "signingIn": "Đang đăng nhập...",
+    "createAccount": "Tạo tài khoản",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "enterConfirmPassword": "Nhập lại mật khẩu của bạn",
+    "alreadyHaveAccount": "Đã có tài khoản?"
   },
   "common": {
     "cancel": "Hủy",

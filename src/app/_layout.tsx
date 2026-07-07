@@ -6,12 +6,12 @@ import {
 import { Redirect, Stack } from "expo-router";
 import * as ExpoSplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { useColorScheme } from "react-native";
 import "../../global.css";
 
 import SplashScreenComponent from "@/components/splash-screen";
 import { AuthProvider, useAuth } from "@/context/auth-context";
 import { LocaleProvider, useLocale } from "@/context/locale-context";
+import { ThemeContextProvider, useThemeContext } from "@/context/theme-context";
 
 ExpoSplashScreen.preventAutoHideAsync();
 
@@ -41,22 +41,20 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   return (
-    <LocaleProvider>
-      <RootLayoutContent colorScheme={colorScheme} />
-    </LocaleProvider>
+    <ThemeContextProvider>
+      <LocaleProvider>
+        <RootLayoutContent />
+      </LocaleProvider>
+    </ThemeContextProvider>
   );
 }
 
-function RootLayoutContent({
-  colorScheme,
-}: {
-  colorScheme: "light" | "dark" | null | undefined;
-}) {
-  const { isReady } = useLocale();
+function RootLayoutContent() {
+  const { isReady: localeReady } = useLocale();
+  const { colorScheme } = useThemeContext();
 
-  if (!isReady) {
+  if (!localeReady) {
     return null;
   }
 

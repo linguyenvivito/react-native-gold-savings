@@ -1,5 +1,5 @@
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
 type DatePickerProps = {
   value: Date;
@@ -27,7 +27,7 @@ export default function DatePicker({
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View className="mt-2">
       <input
         type="date"
         value={toInputValue(value)}
@@ -39,12 +39,6 @@ export default function DatePicker({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    marginTop: 8,
-  },
-});
 
 const inputStyle: React.CSSProperties = {
   fontSize: 15,

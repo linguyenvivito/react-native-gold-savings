@@ -5,7 +5,8 @@
     "aiagent": "AI Agent",
     "donate": "Donate",
     "settings": "Settings",
-    "auth": "Auth"
+    "auth": "Auth",
+    "market": "Market"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -22,13 +23,8 @@
     "date": "Date",
     "yourSubscriptionStorage": "Your Subscription Storage",
     "worldGoldPrice": "World Gold Price",
-    "welcomeMessage": "Gold Savings",
+    "appName": "Gold Savings",
     "rightColumnMessage": "Support me!"
-  },
-  "auth": {
-    "login": "Login",
-    "register": "Register",
-    "forgotPassword": "Forgot Password"
   },
   "settings": {
     "title": "Settings",
@@ -40,6 +36,7 @@
     "english": "English",
     "vietnamese": "Vietnamese",
     "notifications": "Notifications",
+    "darkMode": "Dark Mode",
     "app": "App",
     "appVersion": "App Version",
     "aboutGoldSavings": "About Gold Savings",
@@ -71,7 +68,11 @@
     "XAU_24K": "24K Gold",
     "XAU_9999": "9999 Gold",
     "RING": "Gold Ring",
-    "BAR": "Gold Bar"
+    "BAR": "Gold Bar",
+    "setTodayPrice": "Set Today Price",
+    "enterTodaysPrice": "Enter today's price",
+    "todaysGoldPrice": "Today's Gold Price",
+    "enterPricePerMace": "Enter price per unit `Mace` to update estimate."
   },
   "app": {
     "name": "Gold Savings",
@@ -84,5 +85,26 @@
   "common": {
     "cancel": "Cancel",
     "apply": "Apply"
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back!",
+    "signIn": "Sign in to your account",
+    "signUp": "Sign up for a new account",
+    "login": "Login",
+    "register": "Register",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "username": "Username",
+    "enterUsername": "Enter your username",
+    "email": "Email",
+    "enterEmail": "Enter your email",
+    "password": "Password",
+    "enterPassword": "Enter your password",
+    "noAccount": "Don't have an account?",
+    "signingIn": "Signing In...",
+    "createAccount": "Create Account",
+    "confirmPassword": "Confirm Password",
+    "enterConfirmPassword": "Enter your confirm password",
+    "alreadyHaveAccount": "Already have an account?"
   }
 }

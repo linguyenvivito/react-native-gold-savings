@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
-import { StyleSheet, useColorScheme, View } from "react-native";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useColorScheme, View } from "react-native";
 
 import { Colors } from "@/constants/theme";
 import i18n from "@/i18n";
@@ -59,23 +59,34 @@ export default function AppTabs() {
           title: i18n.t("tabs.aiagent"),
           tabBarLabel: "",
           tabBarIcon: () => (
-            <View style={[styles.fab, { backgroundColor: colors.tint }]}>
+            <View
+              className="h-[60px] w-[60px] items-center justify-center rounded-full"
+              style={{
+                backgroundColor: colors.tint,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+              }}
+            >
               <MaterialCommunityIcons name="robot" size={26} color="#fff" />
             </View>
           ),
-          tabBarItemStyle: styles.fabItem,
+          tabBarItemStyle: {
+            marginTop: -22,
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "visible",
+          },
         }}
       />
 
-      {/* Donate Tab */}
+      {/* Market Tab */}
       <Tabs.Screen
-        name="(donate)"
+        name="(market)"
         options={{
-          title: i18n.t("tabs.donate"),
-          tabBarLabel: i18n.t("tabs.donate"),
+          title: i18n.t("tabs.market"),
+          tabBarLabel: i18n.t("tabs.market"),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
-              name="hand-heart"
+              name="currency-usd"
               size={size}
               color={color}
             />
@@ -100,20 +111,3 @@ export default function AppTabs() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  fabItem: {
-    marginTop: -22,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "visible",
-  },
-  fab: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
-  },
-});

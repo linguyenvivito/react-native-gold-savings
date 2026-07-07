@@ -1,162 +1,69 @@
-import DateTimePicker from "@/components/date-picker";
+import { ThemedView } from "@/components/themed-view";
 import {
   fetchGoldDataPage,
   type GoldDataRow,
 } from "@/features/dashboard/gold-data";
-import { Store } from "@/features/store/store.type";
-import { ThemedView } from "@/components/themed-view";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
+import { getStores } from "@/features/store/store.router";
+import { Store } from "@/features/store/store.type";
 import i18n from "@/i18n";
-import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useEffect, useMemo, useState } from "react";
 import {
   Linking,
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import StoreCard from "./store-card";
-import { getStores } from "@/features/store/store.router";
+import { Image } from "expo-image";
+import StoreCard from "./(components)/store-card";
+import { SafeAreaView } from "react-native-safe-area-context";
+import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
 
 export default function DashboardScreen() {
   const PAGE_SIZE = 20;
 
   const [tableGoldData, setTableGoldData] = useState<GoldDataRow[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(0);
-  const [dataError, setDataError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date("2023-06-01"));
-  const [pendingDate, setPendingDate] = useState(new Date("2023-06-01"));
-  const [dateInput, setDateInput] = useState("2023-06-01");
-  const [showPicker, setShowPicker] = useState(false);
+  const [selectedDate] = useState(new Date("2023-06-01"));
   const [stores, setStores] = useState<Store[]>([]);
 
-  const filteredMoney = useMemo(() => {
-    return sumBy(tableGoldData, (item) => item.price * item.value);
+  const totalEstimatedAssets = useMemo(() => {
+    return sumBy(tableGoldData, (item) => item.price * item.value) || 999000000;
   }, [tableGoldData]);
-
-  const money = useMemo(() => {
-    return sumBy(tableGoldData, (item) => item.price * item.value);
-  }, [tableGoldData]);
-
-  const totalGold = useMemo(() => {
-    return sumBy(tableGoldData, (item) => item.value);
-  }, [tableGoldData]);
-
-  const latestWorldPrice = useMemo(() => {
-    if (!tableGoldData.length) {
-      return null;
-    }
-    return tableGoldData[0];
-  }, [tableGoldData]);
-
-  const onPickDate = () => {
-    setPendingDate(selectedDate);
-    setShowPicker(true);
-  };
-
-  const onChangeDate = (event: DateTimePickerEvent, date?: Date) => {
-    if (Platform.OS === "android") {
-      setShowPicker(false);
-      if (event.type === "set" && date) {
-        setSelectedDate(date);
-        setPendingDate(date);
-      }
-    } else if (date) {
-      setPendingDate(date);
-    }
-  };
-
-  const onApply = () => {
-    setSelectedDate(pendingDate);
-    setDateInput(pendingDate.toISOString().slice(0, 10));
-    setShowPicker(false);
-  };
-
-  const onCancel = () => {
-    setPendingDate(selectedDate);
-    setShowPicker(false);
-  };
-
-  const onDateInputChange = (text: string) => {
-    setDateInput(text);
-    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-      const parsed = new Date(text);
-      if (!isNaN(parsed.getTime())) {
-        setSelectedDate(parsed);
-        setPendingDate(parsed);
-      }
-    }
-  };
-
-  const loadGoldData = async (targetPage: number, replace: boolean) => {
-    if (replace) {
-      setIsLoadingData(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-
-    setDataError(null);
-
-    try {
-      const result = await fetchGoldDataPage({
-        fromDate: selectedDate.toISOString().slice(0, 10),
-        page: targetPage,
-        pageSize: PAGE_SIZE,
-      });
-
-      setHasMore(result.hasMore);
-      setPage(targetPage);
-      setTableGoldData((prev) =>
-        replace ? result.rows : [...prev, ...result.rows],
-      );
-    } catch (error) {
-      if (replace) {
-        setTableGoldData([]);
-      }
-      setDataError(
-        error instanceof Error ? error.message : "Unable to load gold data.",
-      );
-    } finally {
-      if (replace) {
-        setIsLoadingData(false);
-      } else {
-        setIsLoadingMore(false);
-      }
-    }
-  };
-
-  const loadStoreData = async () => {
-    try {
-      const result = await getStores();
-      setStores(result);
-    } catch (error) {
-      console.error("Failed to load stores:", error);
-    }
-  };
 
   useEffect(() => {
-    loadGoldData(0, true);
+    const loadGoldData = async () => {
+      try {
+        const result = await fetchGoldDataPage({
+          fromDate: selectedDate.toISOString().slice(0, 10),
+          page: 0,
+          pageSize: PAGE_SIZE,
+        });
+        setTableGoldData(result.rows);
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+      }
+    };
+
+    loadGoldData();
   }, [selectedDate]);
 
   useEffect(() => {
+    const loadStoreData = async () => {
+      try {
+        const result = await getStores();
+        setStores(result);
+      } catch (error) {
+        console.error("Failed to load stores:", error);
+      }
+    };
+
     loadStoreData();
   }, []);
 
-  const onLoadMore = () => {
-    if (isLoadingData || isLoadingMore || !hasMore) {
-      return;
-    }
-    loadGoldData(page + 1, false);
-  };
-
-  const tradingViewUrl = "https://www.tradingview.com/symbols/GOLD/";
+  const tradingViewUrl =
+    "https://www.tradingview-widget.com/embed-widget/single-quote/?locale=vi_VN#%7B%22symbol%22%3A%22PEPPERSTONE%3AXAUUSD%22%2C%22width%22%3A300%2C%22height%22%3A126%2C%22isTransparent%22%3Atrue%2C%22colorTheme%22%3A%22light%22%2C%22utm_source%22%3A%22sjc.com.vn%22%2C%22utm_medium%22%3A%22widget%22%2C%22utm_campaign%22%3A%22single-quote%22%2C%22page-uri%22%3A%22sjc.com.vn%2Fbieu-do-gia-vang%22%7D";
   const NativeWebView =
     Platform.OS === "ios" || Platform.OS === "android"
       ? require("react-native-webview").WebView
@@ -169,359 +76,97 @@ export default function DashboardScreen() {
       console.error("Failed to open gold price chart:", error);
     }
   };
-  
+
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-
-      <View style={styles.headerCard} className="flex-row w-full gap-4 p-4">
-        {/* Column 1 */}
-        <View className="flex-1 p-4 rounded-lg">
-          <Text>
-            {i18n.t("dashboard.welcomeMessage")}
-          </Text>
-        </View>
-
-        {/* Column 2 */}
-        <View className="flex-1 p-4 rounded-lg">
-          <Text>
-            {i18n.t("dashboard.rightColumnMessage")}
-          </Text>
-        </View>
-      </View>
-
-        {/* Stats Cards */}
-        <View style={styles.statsContainer}>
-          {/* Total Money Card */}
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>
-              {i18n.t("assets.estimatedTotalAssets")}
-            </Text>
-            <Text style={styles.statValue}>{formatVND(money)}</Text>
-          </View>
-        </View>
-
-        {/* Your subscription storage Section */}
-        <Text style={styles.tableTitle}>
-          {i18n.t("dashboard.yourSubscriptionStorage")}
-        </Text>
-
-        <View style={styles.filterCard}>
-          <View style={{ paddingHorizontal: 15, paddingBottom: 30 }}>
-            {stores.map((item) => (
-              <StoreCard key={item.id.toString()} store={item} />
-            ))}
-          </View>
-        </View>
-
-        {/* Header */}
-        <Text style={styles.screenTitle}>
-          {i18n.t("dashboard.worldGoldPrice")}
-        </Text>
-
-        {/* World Gold Price Card */}
-        <View style={styles.goldsContainer}>
-          {NativeWebView ? (
-            <View pointerEvents="none" style={styles.webViewWrapper}>
-              <NativeWebView
-                source={{ uri: tradingViewUrl }}
-                javaScriptEnabled
-                domStorageEnabled
-                scrollEnabled={false}
-                style={styles.webView}
+    <ThemedView className="flex-1 bg-slate-50">
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerClassName="px-4"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="w-full flex-row gap-3 px-4 pb-4">
+            <View className="w-2/3 flex-row flex-wrap ounded-xl items-center">
+              <View className="flex-row items-center gap-1">
+                <Image
+                  source={require("@/assets/images/logo.svg")}
+                  style={{ width: 50, height: 50 }}
+                  className="float-left mr-2"
+                />
+                <Text className="float-left text-main-primary font-bold font-mono text-xl uppercase">
+                  {i18n.t("dashboard.appName")}
+                </Text>
+              </View>
+            </View>
+            <View className="w-1/3 rounded-xl items-center justify-center">
+              <View className="flex-row items-center gap-1 border border-amber-400 bg-amber-50 px-2 py-1 rounded-lg">
+                <MaterialCommunityIcons
+                name="hand-heart"
+                size={18}
+                color="#d4af37"
               />
+              </View>
             </View>
-          ) : (
-            <View style={styles.chartFallbackCard}>
-              <Text style={styles.infoText}>
-                {i18n.t("dashboard.liveChartUnavailable")}
-              </Text>
-              <Pressable style={styles.dateButton} onPress={openTradingView}>
-                <Text style={styles.dateButtonText}>{i18n.t("dashboard.openGoldChart")}</Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
+          </View>
 
-      </ScrollView>
+          <View className="mb-5 gap-3 px-4">
+            <View className="rounded-xl border border-slate-200 p-4">
+              <Text className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {i18n.t("assets.estimatedTotalAssets")}
+              </Text>
+              <Text className="text-2xl font-bold text-main-primary">
+                {formatVND(totalEstimatedAssets)}
+              </Text>
+            </View>
+          </View>
+
+          <Text className="mb-3 px-4 text-xl font-bold text-main-primary items-center font-mono">
+            <MaterialCommunityIcons name="store" size={24} color="#d4af37" /> {i18n.t("dashboard.yourSubscriptionStorage")}
+          </Text>
+
+          <View className="mx-4 mb-5 rounded-xl border border-slate-200 p-4">
+            <View className="px-1 pb-5">
+              {stores.map((item) => (
+                <StoreCard key={item.id.toString()} store={item} />
+              ))}
+            </View>
+          </View>
+
+          <Text className="mb-4 px-4 pt-2 text-xl font-bold text-main-primary font-mono ">
+            <MaterialCommunityIcons name="gold" size={24} color="#d4af37" /> {i18n.t("dashboard.worldGoldPrice")}
+          </Text>
+
+          <View className="mb-6 h-[400px] gap-4 px-4">
+            {NativeWebView ? (
+              <View
+                pointerEvents="none"
+                className="h-[100px] overflow-hidden rounded-xl border border-slate-200"
+              >
+                <NativeWebView
+                  source={{ uri: tradingViewUrl }}
+                  javaScriptEnabled
+                  domStorageEnabled
+                  scrollEnabled={false}
+                  style={{ flex: 1 }}
+                />
+              </View>
+            ) : (
+              <View className="gap-3 rounded-xl border border-slate-200 p-4">
+                <Text className="mb-1 px-1 text-sm text-slate-500">
+                  {i18n.t("dashboard.liveChartUnavailable")}
+                </Text>
+                <Pressable
+                  className="self-start rounded-lg bg-main-primary px-4 py-2.5"
+                  onPress={openTradingView}
+                >
+                  <Text className="text-sm font-semibold text-white">
+                    {i18n.t("dashboard.openGoldChart")}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-    paddingTop: 60,
-  },
-  headerCard: {
-
-  },
-  screenTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 20,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    color: "#d4af37",
-  },
-  statsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 20,
-    gap: 12,
-  },
-  goldsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 30,
-    gap: 20,
-    height: 400,
-  },
-  statCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  statLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#6b7280",
-    marginBottom: 6,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#d4af37",
-  },
-  worldPriceValue: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#b8860b",
-    marginBottom: 8,
-  },
-  worldMetaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  worldMetaText: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "600",
-  },
-  worldLocationText: {
-    fontSize: 13,
-    color: "#374151",
-  },
-  webViewWrapper: {
-    height: 370,
-    borderRadius: 10,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#ffffff",
-  },
-  webView: {
-    flex: 1,
-  },
-  chartFallbackCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    gap: 12,
-  },
-  filterCard: {
-    backgroundColor: "#ffffff",
-    marginHorizontal: 16,
-    marginBottom: 20,
-    borderRadius: 10,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#d4af37",
-    marginBottom: 12,
-  },
-  filterContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 12,
-  },
-  dateDisplay: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-  },
-  dateLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginBottom: 4,
-  },
-  dateValue: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#d4af37",
-  },
-  dateInput: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#d4af37",
-    padding: 0,
-  },
-  dateButton: {
-    backgroundColor: "#d4af37",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
-  dateButtonText: {
-    color: "#ffffff",
-    fontWeight: "600",
-    fontSize: 13,
-  },
-  pickerContainer: {
-    marginBottom: 12,
-  },
-  pickerActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 8,
-    marginTop: 8,
-  },
-  cancelButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    backgroundColor: "#ffffff",
-  },
-  cancelButtonText: {
-    color: "#374151",
-    fontWeight: "600",
-    fontSize: 13,
-  },
-  applyButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: "#d4af37",
-  },
-  applyButtonText: {
-    color: "#ffffff",
-    fontWeight: "600",
-    fontSize: 13,
-  },
-  filteredResult: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#fffbf0",
-    borderLeftWidth: 4,
-    borderLeftColor: "#d4af37",
-    padding: 12,
-    borderRadius: 6,
-  },
-  resultLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#b8860b",
-  },
-  resultValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#b8860b",
-  },
-  tableTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    color: "#d4af37",
-  },
-  infoText: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    color: "#6b7280",
-    fontSize: 13,
-  },
-  errorText: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    color: "#dc2626",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  loadMoreButton: {
-    marginTop: 8,
-    marginHorizontal: 12,
-    marginBottom: 8,
-    borderRadius: 8,
-    backgroundColor: "#d4af37",
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  loadMoreText: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  tableWrapper: {
-    marginHorizontal: 16,
-    marginBottom: 20,
-    borderRadius: 8,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#f3f4f6",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    paddingVertical: 10,
-  },
-  tableRow: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
-    paddingVertical: 10,
-    backgroundColor: "#ffffff",
-  },
-  headerCell: {
-    fontWeight: "700",
-    fontSize: 12,
-    paddingHorizontal: 8,
-    color: "#374151",
-  },
-  cell: {
-    fontSize: 13,
-    paddingHorizontal: 8,
-    color: "#d4af37",
-  },
-  col1: {
-    flex: 1,
-  },
-  col2: {
-    flex: 1,
-  },
-  col3: {
-    flex: 1,
-  },
-  col4: {
-    flex: 1,
-  },
-  listContent: {
-    paddingBottom: 8,
-  },
-});

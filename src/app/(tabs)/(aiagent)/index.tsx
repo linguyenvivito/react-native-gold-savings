@@ -7,11 +7,11 @@ import {
     Alert,
     Pressable,
     ScrollView,
-    StyleSheet,
     Text,
     TextInput,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type GoldDataItem = {
   id: string;
@@ -109,36 +109,40 @@ export default function AIAgentScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>{i18n.t("assets.title")}</Text>
-        <Text style={styles.total}>Total Money: {formatVND(totalMoney)}</Text>
+    <ThemedView className="flex-1 bg-slate-50">
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerClassName="px-4"
+          showsVerticalScrollIndicator={false}
+        >
+        <Text className="mb-2 text-2xl font-bold text-main-primary">{i18n.t("assets.title")}</Text>
+        <Text className="mb-4 text-base font-semibold text-slate-700">Total Money: {formatVND(totalMoney)}</Text>
 
-        <View style={styles.formCard}>
-          <Text style={styles.label}>{i18n.t("assets.price")}</Text>
+        <View className="rounded-xl border border-slate-200 bg-white p-3">
+          <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">{i18n.t("assets.price")}</Text>
           <TextInput
-            style={styles.input}
+            className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
             keyboardType="numeric"
             value={form.price}
             onChangeText={(text) => updateForm("price", text)}
             placeholder="13000"
           />
 
-          <Text style={styles.label}>{i18n.t("assets.value")}</Text>
+          <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">{i18n.t("assets.value")}</Text>
           <TextInput
-            style={styles.input}
+            className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
             keyboardType="numeric"
             value={form.value}
             onChangeText={(text) => updateForm("value", text)}
             placeholder="1"
           />
 
-          <Text style={styles.label}>{i18n.t("assets.unit")}</Text>
-          <View style={styles.pickerContainer}>
+          <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">{i18n.t("assets.unit")}</Text>
+          <View className="overflow-hidden rounded-lg border border-slate-300 bg-white">
             <Picker
               selectedValue={form.unit}
               onValueChange={(itemValue) => updateForm("unit", itemValue)}
-              style={styles.picker}
+              style={{ height: 50 }}
             >
               {UNIT_OPTIONS.map((option) => (
                 <Picker.Item
@@ -150,154 +154,64 @@ export default function AIAgentScreen() {
             </Picker>
           </View>
 
-          <Text style={styles.label}>{i18n.t("assets.releaseDate")}</Text>
+          <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">{i18n.t("assets.releaseDate")}</Text>
           <TextInput
-            style={styles.input}
+            className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
             value={form.releaseDate}
             onChangeText={(text) => updateForm("releaseDate", text)}
             placeholder="2026-07-02"
           />
 
-          <Text style={styles.label}>{i18n.t("assets.location")}</Text>
+          <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">{i18n.t("assets.location")}</Text>
           <TextInput
-            style={styles.input}
+            className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
             value={form.location}
             onChangeText={(text) => updateForm("location", text)}
             placeholder={i18n.t("assets.location")}
           />
 
-          <Text style={styles.label}>{i18n.t("assets.description")}</Text>
+          <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">{i18n.t("assets.description")}</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            className="min-h-[72px] rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
+            style={{ textAlignVertical: "top" }}
             value={form.description}
             onChangeText={(text) => updateForm("description", text)}
             placeholder={i18n.t("assets.description")}
             multiline
           />
 
-          <Pressable style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitText}>{i18n.t("assets.submit")}</Text>
+          <Pressable className="mt-3.5 items-center rounded-lg bg-amber-600 py-2.5" onPress={handleSubmit}>
+            <Text className="text-sm font-bold text-white">{i18n.t("assets.submit")}</Text>
           </Pressable>
         </View>
 
-        <Text style={styles.sectionTitle}>
+        <Text className="mb-2.5 mt-4 text-base font-bold text-slate-800">
           {i18n.t("assets.savedGoldData")}
         </Text>
         <View>
           {goldData.map((item, index) => (
             <View key={item.id}>
-              <View style={styles.rowCard}>
-                <Text style={styles.rowTitle}>{formatVND(item.price)}</Text>
-                <Text style={styles.rowText}>
+              <View className="rounded-lg border border-slate-200 bg-white p-2.5">
+                <Text className="mb-1 text-sm font-bold text-slate-800">{formatVND(item.price)}</Text>
+                <Text className="text-xs text-slate-700">
                   {i18n.t("assets.value")}: {item.value}
                 </Text>
-                <Text style={styles.rowText}>
+                <Text className="text-xs text-slate-700">
                   {i18n.t("assets.unit")}: {item.unit}
                 </Text>
-                <Text style={styles.rowText}>
+                <Text className="text-xs text-slate-700">
                   {i18n.t("assets.releaseDate")}: {item.releaseDate}
                 </Text>
-                <Text style={styles.rowText}>
+                <Text className="text-xs text-slate-700">
                   {i18n.t("assets.location")}: {item.location}
                 </Text>
               </View>
-              {index < goldData.length - 1 && <View style={styles.separator} />}
+              {index < goldData.length - 1 && <View className="h-2" />}
             </View>
           ))}
         </View>
       </ScrollView>
+      </SafeAreaView>
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  total: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 16,
-  },
-  formCard: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    padding: 12,
-    backgroundColor: "#ffffff",
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 6,
-    marginTop: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    backgroundColor: "#ffffff",
-  },
-  textArea: {
-    minHeight: 72,
-    textAlignVertical: "top",
-  },
-  submitButton: {
-    marginTop: 14,
-    backgroundColor: "#d4af37",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  submitText: {
-    color: "#ffffff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  sectionTitle: {
-    marginTop: 18,
-    marginBottom: 10,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  rowCard: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: "#ffffff",
-  },
-  rowTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  rowText: {
-    fontSize: 13,
-  },
-  separator: {
-    height: 8,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    overflow: "hidden",
-  },
-  picker: {
-    height: 50,
-  },
-});

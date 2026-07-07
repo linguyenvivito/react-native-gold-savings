@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -84,18 +84,18 @@ export function AnimatedIcon() {
   return (
     <View style={styles.iconContainer}>
       <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
-        <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
+        <Image style={styles.glow} source={require('@/assets/images/logo-glow.svg')} />
       </Animated.View>
 
       <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
+        <Image style={styles.image} source={require('@/assets/images/logo.svg')} />
       </Animated.View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -119,13 +119,13 @@ const styles = StyleSheet.create({
   },
   background: {
     borderRadius: 40,
-    experimental_backgroundImage: `linear-gradient(180deg, #3C9FFE, #0274DF)`,
+    experimental_backgroundImage: `linear-gradient(180deg, #D4AF37, #FFD700)`,
     width: 128,
     height: 128,
     position: 'absolute',
   },
   backgroundSolidColor: {
-    backgroundColor: '#208AEF',
+    backgroundColor: '#D4AF37',
     zIndex: 1000,
   },
-});
+} as const;

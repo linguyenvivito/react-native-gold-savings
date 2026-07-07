@@ -1,8 +1,9 @@
 import { useColorScheme } from "react-native";
 
 import Breadcrumbs from "@/components/app-breadcrumbs";
+import AssetScreen from ".";
 
-export default function AuthLayout() {
+export default function AssetLayout() {
   const colorScheme = useColorScheme();
-  return <Breadcrumbs />;
+  return <AssetScreen />;
 }
