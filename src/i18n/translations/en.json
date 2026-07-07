@@ -21,7 +21,9 @@
     "unit": "Unit",
     "date": "Date",
     "yourSubscriptionStorage": "Your Subscription Storage",
-    "worldGoldPrice": "World Gold Price"
+    "worldGoldPrice": "World Gold Price",
+    "welcomeMessage": "Gold Savings",
+    "rightColumnMessage": "Support me!"
   },
   "auth": {
     "login": "Login",

@@ -1,6 +1,7 @@
 import { mapStoreRow, type Store, type StoreRow } from "./store.type";
 
 const API_BASE_URL =
+    process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ||
     process.env.EXPO_PUBLIC_BACKEND_URL?.trim() ||
     "https://python-gold-savings.onrender.com"; // https://python-gold-savings.onrender.com
 

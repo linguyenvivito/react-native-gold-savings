@@ -173,8 +173,22 @@ export default function DashboardScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <Text style={styles.screenTitle}>{i18n.t("dashboard.title")}</Text>
+
+      <View style={styles.headerCard} className="flex-row w-full gap-4 p-4">
+        {/* Column 1 */}
+        <View className="flex-1 p-4 rounded-lg">
+          <Text>
+            {i18n.t("dashboard.welcomeMessage")}
+          </Text>
+        </View>
+
+        {/* Column 2 */}
+        <View className="flex-1 p-4 rounded-lg">
+          <Text>
+            {i18n.t("dashboard.rightColumnMessage")}
+          </Text>
+        </View>
+      </View>
 
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
@@ -238,6 +252,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
+    paddingTop: 60,
+  },
+  headerCard: {
+
   },
   screenTitle: {
     fontSize: 28,

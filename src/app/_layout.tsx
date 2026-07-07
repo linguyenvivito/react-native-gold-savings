@@ -7,6 +7,7 @@ import { Redirect, Stack } from "expo-router";
 import * as ExpoSplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
+import "../../global.css";
 
 import SplashScreenComponent from "@/components/splash-screen";
 import { AuthProvider, useAuth } from "@/context/auth-context";

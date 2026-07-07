@@ -31,7 +31,14 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.development
+.env.preview
+.env.production
 .env*.local
+
+# keep template tracked
+!.env.example
 
 # typescript
 *.tsbuildinfo
