@@ -22,6 +22,8 @@
     "unit": "Unit",
     "date": "Date",
     "yourSubscriptionStorage": "Your Subscription Storage",
+    "targetGoldBought": "Target Gold",
+    "targetGoldAt": "Target Gold at ",
     "worldGoldPrice": "World Gold Price",
     "appName": "Gold Savings",
     "rightColumnMessage": "Support me!"
@@ -41,13 +43,18 @@
     "appVersion": "App Version",
     "aboutGoldSavings": "About Gold Savings",
     "privacyPolicy": "Privacy Policy",
-    "logout": "Logout"
+    "logout": "Logout",
+    "reference": "Reference",
+    "security_data": "Data is secured.",
+    "security_data_info": "All your data is secured and encrypted."
   },
   "assets": {
     "product": "Product",
     "title": "Assets",
     "buy": "Buy",
     "sell": "Sell",
+    "store": "Store",
+    "type": "Gold Type",
     "transfer": "Transfer",
     "price": "Price",
     "value": "Value",

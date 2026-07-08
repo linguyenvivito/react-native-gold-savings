@@ -12,6 +12,7 @@ import {
   Text,
   TextInput,
   View,
+  Image,
 } from "react-native";
 import { GoldTempRow } from "@/features/asset/gold.type";
 import { getOrders } from "@/features/order/order.router";
@@ -199,13 +200,29 @@ export default function AssetScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 bg-slate-50 font-serif">
-      <SafeAreaView style={{ flex: 1 }}>
+    <ThemedView className="flex-1 bg-amber-50">
+      <SafeAreaView className="flex-1 bg-amber-50">
+        <View className="py-5 w-full flex-row bg-amber-50">
+          <View className="w-2/3 flex-row flex-wrap ounded-xl items-center">
+            
+          </View>
+          <View className="w-1/3 rounded-xl items-center justify-center">
+            <View className="flex-row items-center gap-1 border border-amber-400 bg-amber-50 px-2 py-1 rounded-lg">
+              <MaterialCommunityIcons
+                name="plus-circle-outline"
+                size={18}
+                color="#d4af37"
+              />
+            </View>
+          </View>
+        </View>
+
         <ScrollView
+          className="flex-1"
           contentContainerClassName="px-4"
           showsVerticalScrollIndicator={false}
         >
-          <View className="mb-5 gap-3 px-4">
+          <View className="mb-5 gap-3">
             <View className="rounded-xl border border-slate-200 p-4">
               <Text className="mb-1 text-xs font-semibold text-slate-500">
                 {i18n.t("assets.estimatedTotalAssets")}
@@ -290,7 +307,7 @@ export default function AssetScreen() {
             </View>
           </View>
 
-          <View className="mx-4 mb-5 rounded-xl border border-slate-200 p-4">
+          <View className="mb-5 rounded-xl border border-slate-200 p-4">
             <Text className="mb-3 text-sm font-semibold text-slate-500">
               {i18n.t("dashboard.filterByDate")}
             </Text>
@@ -320,38 +337,40 @@ export default function AssetScreen() {
                 </Pressable>
               )}
             </View>
-
+            
             {showPicker && (
-              <View className={`mb-3 text-xl bg-slate-500 font-mono px-2 py-2.5 rounded-lg`}>
-               <View className="overflow-hidden">
-                <DateTimePicker
-                  display={Platform.OS === "ios" ? "inline" : "default"}
-                  value={pendingDate}
-                  onChange={onChangeDate}
-                  maximumDate={new Date()}
-                />
-                {Platform.OS !== "android" && (
-                  <View className="mt-2 flex-row justify-end gap-2">
-                    <Pressable
-                      className="rounded-lg border border-slate-200 px-4 py-2"
-                      onPress={onCancel}
-                    >
-                      <Text className="text-xs font-semibold text-white">
-                        {i18n.t("common.cancel")}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      className="rounded-lg bg-slate-900 px-4 py-2"
-                      onPress={onApply}
-                    >
-                      <Text className="text-xs font-semibold text-white">
-                        {i18n.t("common.apply")}
-                      </Text>
-                    </Pressable>
-                  </View>
-                )}
+              <View
+                className={`mb-3 text-xl bg-slate-500 font-mono py-2.5 rounded-lg`}
+              >
+                <View className="overflow-hidden">
+                  <DateTimePicker
+                    display={Platform.OS === "ios" ? "inline" : "default"}
+                    value={pendingDate}
+                    onChange={onChangeDate}
+                    maximumDate={new Date()}
+                  />
+                  {Platform.OS !== "android" && (
+                    <View className="mt-2 flex-row justify-end gap-2">
+                      <Pressable
+                        className="rounded-lg border border-slate-200 px-4 py-2"
+                        onPress={onCancel}
+                      >
+                        <Text className="text-xs font-semibold text-white">
+                          {i18n.t("common.cancel")}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        className="rounded-lg bg-slate-900 px-4 py-2"
+                        onPress={onApply}
+                      >
+                        <Text className="text-xs font-semibold text-white">
+                          {i18n.t("common.apply")}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
               </View>
-  </View>
             )}
 
             <View className="flex-row items-center justify-between rounded-md border-l-4 border-slate-600 bg-slate-100 p-3">
@@ -364,12 +383,8 @@ export default function AssetScreen() {
             </View>
           </View>
 
-          <Text className="mb-3 px-4 text-xl font-bold text-main-primary font-mono">
-            <MaterialCommunityIcons
-              name="gold"
-              size={18}
-              color="#d4af37"
-            /> {i18n.t("dashboard.goldRecords")}
+          <Text className="mb-3 text-xl font-bold text-main-primary font-mono">
+            {i18n.t("dashboard.goldRecords")}
           </Text>
 
           {isLoadingData && (
@@ -383,7 +398,7 @@ export default function AssetScreen() {
             </Text>
           )}
 
-          <View className="mx-4 mb-5 overflow-hidden rounded-lg border border-slate-200">
+          <View className="mb-5 overflow-hidden rounded-lg border border-slate-200">
             <View className="flex-row border-b border-slate-200 bg-slate-100 py-2.5">
               <Text className="flex-1 px-2 font-mono text-xs font-bold text-slate-700">
                 {i18n.t("assets.product")}
@@ -417,8 +432,9 @@ export default function AssetScreen() {
                       {"\n"}
                       <Text className="italic text-sm">
                         {item.quantity}
-                      {"/"}
-                      {i18n.t("assets." + item.unit)}</Text>
+                        {"/"}
+                        {i18n.t("assets." + item.unit)}
+                      </Text>
                     </Text>
                     <Text
                       className={`flex-1 px-2 text-base ${item.side === "buy" ? "text-emerald-600" : "text-rose-600"}`}

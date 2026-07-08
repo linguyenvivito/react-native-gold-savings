@@ -22,6 +22,8 @@
     "unit": "Đơn Vị",
     "date": "Ngày",
     "yourSubscriptionStorage": "Tiệm Vàng",
+    "targetGoldBought": "Mục Tiêu Tích Lũy Vàng",
+    "targetGoldAt": "Tích Lũy tại ",
     "worldGoldPrice": "Giá Vàng Thế Giới",
     "appName": "Tiết Kiệm Vàng",
     "rightColumnMessage": "Hỗ Trợ Tôi!"
@@ -41,13 +43,18 @@
     "appVersion": "Phiên bản ứng dụng",
     "aboutGoldSavings": "Về Gold Savings",
     "privacyPolicy": "Chính sách quyền riêng tư",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "reference": "Tham khảo",
+    "security_data": "Dữ liệu được bảo mật.",
+    "security_data_info": "Tất cả dữ liệu của bạn đều được bảo mật và mã hóa."
   },
   "assets": {
     "product": "Sản phẩm",
     "title": "Tích sản",
     "buy": "Mua",
     "sell": "Bán",
+    "store": "Tiệm vàng",
+    "type": "Loại vàng",
     "transfer": "Chuyển",
     "price": "Giá",
     "spread": "Chênh lệch giá vàng",

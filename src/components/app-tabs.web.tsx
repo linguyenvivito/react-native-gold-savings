@@ -3,14 +3,17 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useColorScheme, View } from "react-native";
 
 import { Colors } from "@/constants/theme";
+import { useLocale } from "@/context/locale-context";
 import i18n from "@/i18n";
 
 export default function AppTabs() {
   const scheme = useColorScheme() ?? "light";
   const colors = Colors[scheme];
+  const { locale } = useLocale();
 
   return (
     <Tabs
+      key={locale}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.tint,
