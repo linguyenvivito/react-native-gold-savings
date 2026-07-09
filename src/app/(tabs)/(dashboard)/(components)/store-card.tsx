@@ -11,7 +11,7 @@ export default function StoreCard({ store }: { store: Store }) {
         <View className="w-1/5 p-2">
           <Image source={require("@/assets/images/gold-logo.svg")} style={{ height: 50, width: 50, borderRadius: 25 }} />
         </View>
-        <View className="w-3/5 p-2">
+        <View className="w-2/5 p-2">
           <View className="flex-row items-start justify-between mb-3">
             <Text className="text-lg font-bold text-slate-900">
               {store.name}

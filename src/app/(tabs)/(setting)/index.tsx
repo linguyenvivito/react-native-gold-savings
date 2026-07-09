@@ -2,17 +2,63 @@ import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { useThemeContext } from "@/context/theme-context";
+import {
+  getUnreadNotificationsForUser,
+  resolveBackendUserId,
+  type NotificationApiError,
+} from "@/features/notification/notification.router";
+import type { Notification } from "@/features/notification/notification.type";
 import i18n from "@/i18n";
 import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
-import { useState } from "react";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
+  const router = useRouter();
   const { locale, toggleLocale } = useLocale();
   const { colorScheme, toggleTheme } = useThemeContext();
   const [notifications, setNotifications] = useState(true);
+  const [unreadNotifications, setUnreadNotifications] = useState<Notification[]>([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [notificationError, setNotificationError] = useState<string | null>(null);
+
+  const backendUserId = resolveBackendUserId(currentUser);
+
+  const loadUnreadNotifications = useCallback(async () => {
+    if (!notifications) {
+      setUnreadNotifications([]);
+      setNotificationError(null);
+      return;
+    }
+
+    if (!backendUserId) {
+      setUnreadNotifications([]);
+      setNotificationError(i18n.t("settings.notifications_setup_required"));
+      return;
+    }
+
+    setIsLoadingNotifications(true);
+    setNotificationError(null);
+
+    try {
+      const items = await getUnreadNotificationsForUser(backendUserId, 20);
+      setUnreadNotifications(items);
+    } catch (error) {
+      const message =
+        (error as NotificationApiError)?.message || i18n.t("settings.notifications_failed");
+      setNotificationError(message);
+      setUnreadNotifications([]);
+    } finally {
+      setIsLoadingNotifications(false);
+    }
+  }, [backendUserId, notifications]);
+
+  useEffect(() => {
+    loadUnreadNotifications();
+  }, [loadUnreadNotifications]);
 
   const handleLanguageToggle = async () => {
     await toggleLocale();
@@ -123,13 +169,80 @@ export default function SettingsScreen() {
                   {i18n.t("settings.notifications")}
                 </Text>
               </View>
-              <Switch
-                value={notifications}
-                onValueChange={setNotifications}
-                trackColor={{ false: "#e5e7eb", true: "#a5f3fc" }}
-                thumbColor={notifications ? "#3b82f6" : "#9ca3af"}
-              />
+              <View className="items-end">
+                <Text className="mb-1 text-xs font-semibold text-slate-500">
+                  {unreadNotifications.length} {i18n.t("settings.unread")}
+                </Text>
+                <Switch
+                  value={notifications}
+                  onValueChange={setNotifications}
+                  trackColor={{ false: "#e5e7eb", true: "#a5f3fc" }}
+                  thumbColor={notifications ? "#3b82f6" : "#9ca3af"}
+                />
+              </View>
             </View>
+
+            <Pressable
+              className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5"
+              onPress={() => router.push("/(tabs)/(setting)/notifications")}
+            >
+              <View className="flex-row items-center">
+                <Text className="text-sm font-semibold pr-2">
+                  <MaterialCommunityIcons
+                    name="bell-badge"
+                    size={20}
+                    color="#d4af37"
+                  />
+                </Text>
+                <Text className="text-sm font-semibold">
+                  {i18n.t("settings.viewAllNotifications")}
+                </Text>
+              </View>
+              <Text className="text-xs font-semibold text-slate-500">
+                {unreadNotifications.length} {i18n.t("settings.unread")}
+              </Text>
+            </Pressable>
+
+            {notifications && (
+              <View className="mb-2 rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+                <View className="mb-2 flex-row items-center justify-between">
+                  <Text className="text-sm font-semibold text-slate-700">
+                    {i18n.t("settings.unreadNotifications")}
+                  </Text>
+                  <Pressable onPress={loadUnreadNotifications}>
+                    <Text className="text-xs font-semibold text-blue-600">
+                      {i18n.t("settings.refresh")}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                {isLoadingNotifications && (
+                  <Text className="text-xs text-slate-400">
+                    {i18n.t("settings.loadingNotifications")}
+                  </Text>
+                )}
+
+                {notificationError && (
+                  <Text className="text-xs text-red-500">{notificationError}</Text>
+                )}
+
+                {!isLoadingNotifications && !notificationError && unreadNotifications.length === 0 && (
+                  <Text className="text-xs text-slate-400">
+                    {i18n.t("settings.noUnreadNotifications")}
+                  </Text>
+                )}
+
+                {unreadNotifications.map((item) => (
+                  <View
+                    key={item.id}
+                    className="mt-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2"
+                  >
+                    <Text className="text-sm font-semibold text-slate-800">{item.title}</Text>
+                    <Text className="mt-1 text-xs text-slate-600">{item.message}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
 
             <View className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
               <View className="flex-1 items-center flex-row">

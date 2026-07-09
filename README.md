@@ -13,6 +13,7 @@ cp .env.example .env
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_KEY` (anon/publishable key only)
 - `EXPO_PUBLIC_API_BASE_URL`
+- `EXPO_PUBLIC_BACKEND_USER_ID` (numeric backend users.id used to fetch/register notifications)
 
 3. Optional backward compatibility variable:
 
@@ -70,3 +71,34 @@ eas build --profile production --platform android
 - Treat all `EXPO_PUBLIC_*` values as public.
 - Never put private secrets in app env files or public env variables.
 - Do not store service-role keys, DB passwords, or private API tokens in `EXPO_PUBLIC_*`.
+
+# Expo Notifications
+
+The app now initializes Expo notifications in [src/app/_layout.tsx](src/app/_layout.tsx) and registers for an Expo push token via [src/features/notification/expo-notifications.ts](src/features/notification/expo-notifications.ts).
+
+## Required for testing
+
+- Physical device (Android/iOS). Push tokens are not created on web/emulators.
+- `EXPO_PUBLIC_EXPO_PROJECT_ID` in `.env` (or keep `app.json` `extra.eas.projectId` set).
+- `EXPO_PUBLIC_BACKEND_USER_ID` in `.env` to persist Expo push token to backend automatically.
+
+## Quick test flow
+
+1. Start app with `npx expo start` and open on a physical device.
+2. Accept notification permission prompt.
+3. Check Metro logs for:
+	 - `[notifications] Expo push token ...`
+4. Send a push to that token using Expo Push API:
+
+```bash
+curl -X POST https://exp.host/--/api/v2/push/send \
+	-H "Content-Type: application/json" \
+	-d '{
+		"to": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+		"title": "GoldSavings",
+		"body": "Expo notification test",
+		"data": { "screen": "notifications" }
+	}'
+```
+
+When delivered, app logs received/open events with notification identifiers.

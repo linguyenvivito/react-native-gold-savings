@@ -1,6 +1,5 @@
-import Breadcrumbs from "@/components/app-breadcrumbs";
-import SettingsScreen from ".";
+import { Stack } from "expo-router";
 
 export default function SettingLayout() {
-  return <SettingsScreen />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
