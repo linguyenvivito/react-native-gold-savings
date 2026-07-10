@@ -1,8 +1,22 @@
 import { ThemedView } from "@/components/themed-view";
+import { useLocale } from "@/context/locale-context";
+import { transcribeAudioFromUri } from "@/features/ai/speech-to-text.router";
+import {
+  getLatestSpeechIntentToken,
+  subscribeSpeechIntent,
+} from "@/features/ai/speech-intent";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
 import { Picker } from "@react-native-picker/picker";
-import { useMemo, useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
+import {
+  AudioModule,
+  RecordingPresets,
+  setAudioModeAsync,
+  useAudioRecorder,
+  useAudioRecorderState,
+} from "expo-audio";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -65,11 +79,23 @@ const UNIT_OPTIONS = [
 ];
 
 export default function AIAgentScreen() {
+  const isFocused = useIsFocused();
+  const { locale } = useLocale();
   const [goldData, setGoldData] = useState<GoldDataItem[]>(initialGoldData);
   const [form, setForm] = useState<GoldFormState>(initialFormState);
   const [isEnabled, setIsEnabled] = useState(form.type);
   const [selectedStore, setSelectedStore] = useState("Kim Mon");
   const [selectedGoldType, setSelectedGoldType] = useState("RING_9999");
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(recorder);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPreparingRecording, setIsPreparingRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [speechError, setSpeechError] = useState("");
+  const [lastAudioUri, setLastAudioUri] = useState("");
+  const lastSpeechIntentRef = useRef(0);
+  const recordingStartedAtRef = useRef<number | null>(null);
 
   const totalMoney = useMemo(() => {
     return sumBy(goldData, (item) => item.price * item.value);
@@ -78,6 +104,163 @@ export default function AIAgentScreen() {
   const updateForm = (key: keyof GoldFormState, value: number | string | boolean) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
+
+  const startRecording = useCallback(async () => {
+    if (isRecording || isPreparingRecording || isTranscribing) {
+      return;
+    }
+
+    setIsPreparingRecording(true);
+    try {
+      const permission = await AudioModule.requestRecordingPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert("Microphone permission required", "Please enable microphone access.");
+        return;
+      }
+
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+      });
+
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      recordingStartedAtRef.current = Date.now();
+      setSpeechError("");
+      setLastAudioUri("");
+      setIsRecording(true);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to activate audio session for recording.";
+      setSpeechError(message);
+      Alert.alert(
+        "Recording unavailable",
+        "Could not start microphone session. Close other apps using audio and try again.",
+      );
+    } finally {
+      setIsPreparingRecording(false);
+    }
+  }, [isPreparingRecording, isRecording, isTranscribing, recorder]);
+
+  const stopRecordingAndTranscribe = useCallback(async () => {
+    if (!isRecording) {
+      return;
+    }
+
+    setIsRecording(false);
+    setIsTranscribing(true);
+
+    try {
+
+      await recorder.stop();
+      const status = recorder.getStatus();
+      const audioUri = status?.url ?? recorder.uri ?? recorderState.url;
+      setLastAudioUri(audioUri ?? "");
+
+      const elapsedMs =
+        recordingStartedAtRef.current != null
+          ? Math.max(0, Date.now() - recordingStartedAtRef.current)
+          : 0;
+      const durationMs = status?.durationMillis ?? recorderState.durationMillis ?? elapsedMs;
+
+      if (durationMs < 500 && !audioUri) {
+        throw new Error("Recording is too short. Please speak for at least 1 second.");
+      }
+
+      if (!audioUri) {
+        throw new Error("Recording file was not found.");
+      }
+
+      const text = await transcribeAudioFromUri(audioUri, locale);
+      setTranscript(text || "No speech detected.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Speech to text failed.";
+      setSpeechError(message);
+      Alert.alert("Speech to text error", message);
+    } finally {
+      recordingStartedAtRef.current = null;
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+      }).catch(() => undefined);
+      setIsTranscribing(false);
+    }
+  }, [isRecording, locale, recorder, recorderState.durationMillis, recorderState.url]);
+
+  const handleSpeechIntent = useCallback(
+    async (token?: number) => {
+      const intentToken = token ?? getLatestSpeechIntentToken();
+      if (intentToken <= lastSpeechIntentRef.current) {
+        return;
+      }
+
+      lastSpeechIntentRef.current = intentToken;
+
+      if (isRecording) {
+        await stopRecordingAndTranscribe();
+        return;
+      }
+
+      await startRecording();
+    },
+    [isRecording, startRecording, stopRecordingAndTranscribe],
+  );
+
+  const handleSpeechIntentSafely = useCallback(
+    async (token?: number) => {
+      try {
+        await handleSpeechIntent(token);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Speech action failed.";
+        setSpeechError(message);
+      }
+    },
+    [handleSpeechIntent],
+  );
+
+  const handleRecordButtonPress = useCallback(async () => {
+    if (isRecording) {
+      await stopRecordingAndTranscribe();
+      return;
+    }
+
+    await startRecording();
+  }, [isRecording, startRecording, stopRecordingAndTranscribe]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeSpeechIntent((token) => {
+      if (!isFocused) {
+        return;
+      }
+
+      handleSpeechIntentSafely(token).catch(() => undefined);
+    });
+
+    return unsubscribe;
+  }, [handleSpeechIntentSafely, isFocused]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+
+    handleSpeechIntentSafely().catch(() => undefined);
+  }, [handleSpeechIntentSafely, isFocused]);
+
+  useEffect(() => {
+    return () => {
+      if (isRecording) {
+        recorder.stop().catch(() => undefined);
+      }
+      setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+      }).catch(() => undefined);
+    };
+  }, [isRecording, recorder]);
 
   const handleSubmit = () => {
     const price = Number(form.price);
@@ -127,6 +310,53 @@ export default function AIAgentScreen() {
           <Text className="mb-4 text-base font-semibold text-slate-700">
             Total Money: {formatVND(totalMoney)}
           </Text>
+
+          <View className="mb-4 rounded-xl border border-slate-200 bg-white p-3">
+            <Text className="mb-2 text-base font-bold text-slate-800">OpenAI Speech to Text</Text>
+            <Pressable
+              className={`items-center rounded-lg py-2.5 ${
+                isTranscribing || isPreparingRecording
+                  ? "bg-slate-400"
+                  : isRecording
+                    ? "bg-rose-600"
+                    : "bg-main-primary"
+              }`}
+              onPress={() => {
+                handleRecordButtonPress().catch((error) => {
+                  const message = error instanceof Error ? error.message : "Speech action failed.";
+                  setSpeechError(message);
+                });
+              }}
+              disabled={isTranscribing || isPreparingRecording}
+            >
+              <Text className="text-sm font-bold text-white">
+                {isPreparingRecording
+                  ? "Preparing microphone..."
+                  : isTranscribing
+                  ? "Transcribing..."
+                  : isRecording
+                    ? "Stop & Transcribe"
+                    : "Start Recording"}
+              </Text>
+            </Pressable>
+
+            {!!speechError && (
+              <Text className="mt-2 text-xs text-rose-600">Error: {speechError}</Text>
+            )}
+
+            <View className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+              <Text className="mb-1 text-xs font-semibold text-slate-600">Transcript</Text>
+              <Text className="text-sm text-slate-800">
+                {transcript || "Press AI tab or Start Recording to transcribe speech."}
+              </Text>
+              <Text className="mt-2 text-[11px] text-slate-500">
+                recorder: canRecord={String(recorderState.canRecord)} | isRecording={String(recorderState.isRecording)}
+              </Text>
+              <Text className="text-[11px] text-slate-500" numberOfLines={2}>
+                url: {lastAudioUri || recorderState.url || "(none)"}
+              </Text>
+            </View>
+          </View>
 
           <View className="rounded-xl border border-slate-200 bg-white p-3">
             <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
@@ -218,9 +448,13 @@ export default function AIAgentScreen() {
               placeholder="13000"
             />
 
-            <View className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
+            <View className="mb-1.5 mt-2">
+              <Text className="text-xs font-semibold text-slate-700">
               {i18n.t("assets.asyncValue")}
-              <Text>@{formatVND(form.price * form.value)}</Text>
+              </Text>
+              <Text className="text-xs font-semibold text-slate-700">
+                @{formatVND(form.price * form.value)}
+              </Text>
             </View>
 
             <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">

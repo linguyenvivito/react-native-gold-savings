@@ -72,6 +72,13 @@ eas build --profile production --platform android
 - Never put private secrets in app env files or public env variables.
 - Do not store service-role keys, DB passwords, or private API tokens in `EXPO_PUBLIC_*`.
 
+## AI Speech To Text
+
+- Press the center AI tab to start recording.
+- Press the AI tab again (or the on-screen button) to stop and transcribe.
+- Mobile app sends audio to backend endpoint `POST /ai/transcribe`.
+- Backend must define `OPENAI_API_KEY` (private, server-side only).
+
 # Expo Notifications
 
 The app now initializes Expo notifications in [src/app/_layout.tsx](src/app/_layout.tsx) and registers for an Expo push token via [src/features/notification/expo-notifications.ts](src/features/notification/expo-notifications.ts).

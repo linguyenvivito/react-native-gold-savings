@@ -3,6 +3,19 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
+function isExpoGoClient(): boolean {
+  const executionEnvironment = Constants.executionEnvironment;
+
+  // In current Expo SDKs, storeClient indicates Expo Go.
+  if (executionEnvironment === "storeClient") {
+    return true;
+  }
+
+  // Keep legacy fallback for older runtimes.
+  const appOwnership = Constants.appOwnership;
+  return appOwnership === "expo" || appOwnership === "guest";
+}
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -28,6 +41,14 @@ function isPermissionGranted(permission: Notifications.NotificationPermissionsSt
 
 export async function initializeExpoNotifications(): Promise<string | null> {
   if (Platform.OS === "web") {
+    return null;
+  }
+
+  const isExpoGo = isExpoGoClient();
+  if (Platform.OS === "android" && isExpoGo) {
+    console.warn(
+      "[notifications] Android remote push is not available in Expo Go (SDK 53+). Use a development build for push token testing.",
+    );
     return null;
   }
 
@@ -68,6 +89,11 @@ export async function initializeExpoNotifications(): Promise<string | null> {
     return null;
   }
 
-  const token = await Notifications.getExpoPushTokenAsync({ projectId });
-  return token.data;
+  try {
+    const token = await Notifications.getExpoPushTokenAsync({ projectId });
+    return token.data;
+  } catch (error) {
+    console.warn("[notifications] Failed to get Expo push token.", error);
+    return null;
+  }
 }

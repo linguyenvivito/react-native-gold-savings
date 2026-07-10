@@ -12,8 +12,6 @@
       "infoPlist": {
         "CFBundleLocalizations": [
           "en",
-          "vi",
-          "en",
           "vi"
         ],
         "ITSAppUsesNonExemptEncryption": false
@@ -27,7 +25,14 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.livivito.GoldSavings"
     },
     "web": {
       "output": "static",
@@ -61,7 +66,8 @@
           }
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

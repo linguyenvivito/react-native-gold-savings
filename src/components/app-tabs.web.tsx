@@ -5,6 +5,7 @@ import { useColorScheme, View } from "react-native";
 import { Colors } from "@/constants/theme";
 import { useLocale } from "@/context/locale-context";
 import i18n from "@/i18n";
+import { triggerSpeechIntent } from "@/features/ai/speech-intent";
 
 export default function AppTabs() {
   const scheme = useColorScheme() ?? "light";
@@ -58,6 +59,11 @@ export default function AppTabs() {
       {/* AI Agent Tab */}
       <Tabs.Screen
         name="(aiagent)"
+        listeners={{
+          tabPress: () => {
+            triggerSpeechIntent();
+          },
+        }}
         options={{
           title: i18n.t("tabs.aiagent"),
           tabBarLabel: "",
