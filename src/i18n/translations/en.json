@@ -94,7 +94,8 @@
     "setTodayPrice": "Set Today Price",
     "enterTodaysPrice": "Enter today's price",
     "todaysGoldPrice": "Today's Gold Price",
-    "enterPricePerMace": "Enter price per unit `Mace` to update estimate."
+    "enterPricePerMace": "Enter price per unit `Mace` to update estimate.",
+    "assetManagement": "Asset Management"
   },
   "app": {
     "name": "Gold Savings",
@@ -128,5 +129,12 @@
     "confirmPassword": "Confirm Password",
     "enterConfirmPassword": "Enter your confirm password",
     "alreadyHaveAccount": "Already have an account?"
+  },
+  "market": {
+    "title": "Market",
+    "domesticMarket": "Domestic Market",
+    "findNearestGoldStore": "Find the nearest gold store",
+    "searchBranches": "Search branch...",
+    "worldMarket": "World Market"
   }
 }

@@ -10,6 +10,7 @@ import i18n from "@/i18n";
 import { useEffect, useMemo, useState } from "react";
 import {
   Linking,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -24,10 +25,13 @@ import Svg, { G, Circle, Text as TextSVG } from "react-native-svg";
 
 export default function DashboardScreen() {
   const PAGE_SIZE = 20;
+  const donationQrUri =
+    "https://cdn.hdbank.com.vn/hdbank-file/news/editor/95LaBftBbhDnjGKgbDJT20231228154717/taomaqrtaikhoannganhangagribank_1703753546547.png";
 
   const [tableGoldData, setTableGoldData] = useState<GoldDataRow[]>([]);
   const [selectedDate] = useState(new Date("2023-06-01"));
   const [stores, setStores] = useState<Store[]>([]);
+  const [isDonationModalVisible, setIsDonationModalVisible] = useState(false);
 
   const totalEstimatedAssets = useMemo(() => {
     return sumBy(tableGoldData, (item) => item.price * item.value) || 999000000;
@@ -100,7 +104,7 @@ export default function DashboardScreen() {
     <ThemedView className="flex-1 bg-amber-50">
       <SafeAreaView className="flex-1 bg-amber-50">
         <View className="w-full flex-row bg-amber-50">
-          <View className="w-2/3 flex-row flex-wrap ounded-xl items-center">
+          <View className="w-2/3 flex-row flex-wrap rounded-xl items-center">
             <View className="flex-row items-center gap-1">
               <Image
                 source={require("@/assets/images/logo.svg")}
@@ -113,15 +117,54 @@ export default function DashboardScreen() {
             </View>
           </View>
           <View className="w-1/3 rounded-xl items-center justify-center">
-            <View className="flex-row items-center gap-1 border border-amber-400 bg-amber-50 px-2 py-1 rounded-lg">
+            <Pressable
+              className="flex-row items-center gap-1 rounded-lg border border-amber-400 bg-amber-50 px-2 py-1"
+              onPress={() => setIsDonationModalVisible(true)}
+            >
               <MaterialCommunityIcons
                 name="hand-heart"
                 size={18}
                 color="#d4af37"
               />
-            </View>
+            </Pressable>
           </View>
         </View>
+
+        <Modal
+          animationType="fade"
+          transparent
+          visible={isDonationModalVisible}
+          onRequestClose={() => setIsDonationModalVisible(false)}
+        >
+          <View className="flex-1 items-center justify-center bg-black/45 px-4">
+            <View className="w-full max-w-[360px] rounded-2xl bg-white p-4">
+              <View className="mb-3 flex-row items-center justify-between">
+                <View>
+                  <Text className="text-lg font-bold text-main-primary">
+                    {i18n.t("tabs.donate")}
+                  </Text>
+                  <Text className="text-xs text-slate-500">
+                    {i18n.t("dashboard.rightColumnMessage")}
+                  </Text>
+                </View>
+                <Pressable
+                  className="rounded-lg bg-slate-100 px-3 py-1.5"
+                  onPress={() => setIsDonationModalVisible(false)}
+                >
+                  <Text className="text-xs font-semibold text-slate-700">
+                    {i18n.t("common.cancel")}
+                  </Text>
+                </Pressable>
+              </View>
+
+              <Image
+                source={{ uri: donationQrUri }}
+                style={{ width: "100%", height: 420 }}
+                contentFit="contain"
+              />
+            </View>
+          </View>
+        </Modal>
 
         <ScrollView
           className="flex-1"

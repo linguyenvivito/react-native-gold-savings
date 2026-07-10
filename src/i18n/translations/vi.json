@@ -95,7 +95,8 @@
     "setTodayPrice": "Đặt giá vàng hôm nay",
     "enterTodaysPrice": "Nhập giá vàng hôm nay",
     "todaysGoldPrice": "Giá vàng hôm nay",
-    "enterPricePerMace": "Nhập giá vàng theo đơn vị `Chỉ vàng` để cập nhật ước tính."
+    "enterPricePerMace": "Nhập giá vàng theo đơn vị `Chỉ vàng` để cập nhật ước tính.",
+    "assetManagement": "Quản lý tài sản"
   },
   "app": {
     "name": "Tiết Kiệm Vàng",
@@ -134,5 +135,12 @@
   "common": {
     "cancel": "Hủy",
     "apply": "Áp dụng"
+  },
+  "market": {
+    "domesticMarket": "Thị Trường Trong Nước",
+    "title": "Thị trường",
+    "findNearestGoldStore": "Tìm tiệm vàng gần nhất",
+    "searchBranches": "Tìm chi nhánh...",
+    "worldMarket": "Thị Trường Thế Giới"
   }
 }

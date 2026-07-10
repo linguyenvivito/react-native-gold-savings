@@ -1,14 +1,19 @@
 import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useColorScheme, View } from "react-native";
+import { Text, useColorScheme, View } from "react-native";
 
 import { Colors } from "@/constants/theme";
+import { useAddTransactionModal } from "@/context/add-transaction-modal-context";
+import { useCenterTabMode } from "@/hooks/use-center-tab-mode";
 import i18n from "@/i18n";
 import { triggerSpeechIntent } from "@/features/ai/speech-intent";
 
 export default function AppTabs() {
   const scheme = useColorScheme() ?? "light";
   const colors = Colors[scheme];
+  const { openAddTransactionModal } = useAddTransactionModal();
+  const { centerTabMode, remainingAiUses, recordAiAgentUsage } = useCenterTabMode();
+  const isAddTransactionMode = centerTabMode === "add-transaction";
 
   return (
     <Tabs
@@ -59,12 +64,19 @@ export default function AppTabs() {
       <Tabs.Screen
         name="(aiagent)"
         listeners={{
-          tabPress: () => {
+          tabPress: (event) => {
+            if (isAddTransactionMode) {
+              event.preventDefault();
+              openAddTransactionModal({ title: "Add Transaction" });
+              return;
+            }
+
+            recordAiAgentUsage().catch(() => undefined);
             triggerSpeechIntent();
           },
         }}
         options={{
-          title: i18n.t("tabs.aiagent"),
+          title: isAddTransactionMode ? "Add Transaction" : i18n.t("tabs.aiagent"),
           tabBarLabel: "",
           tabBarIcon: () => (
             <View
@@ -78,7 +90,21 @@ export default function AppTabs() {
                 shadowRadius: 6,
               }}
             >
-              <MaterialCommunityIcons name="robot" size={28} color="#fff" />
+              <MaterialCommunityIcons
+                name={isAddTransactionMode ? "plus" : "robot"}
+                size={28}
+                color="#fff"
+              />
+              {!isAddTransactionMode && (
+                <View
+                  className="absolute -right-1 -top-1 min-w-[22px] items-center rounded-full bg-white px-1.5 py-0.5"
+                  style={{ elevation: 4 }}
+                >
+                  <Text className="text-[10px] font-bold text-main-primary">
+                    {remainingAiUses}
+                  </Text>
+                </View>
+              )}
             </View>
           ),
           tabBarItemStyle: {

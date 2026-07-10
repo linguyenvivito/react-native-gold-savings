@@ -25,7 +25,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
     // Auto-complete splash after 5 seconds
     const timer = setTimeout(() => {
       onComplete?.();
-    }, 5000);
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, [onComplete]);

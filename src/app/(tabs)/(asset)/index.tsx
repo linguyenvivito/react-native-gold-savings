@@ -1,5 +1,12 @@
 import DateTimePicker from "@/components/date-picker";
 import { ThemedView } from "@/components/themed-view";
+import {
+  AddTransactionFormValues,
+  useAddTransactionModal,
+} from "@/context/add-transaction-modal-context";
+import { testAssets } from "@/features/asset/asset.type";
+import { GoldTempRow } from "@/features/asset/gold.type";
+import { getOrders } from "@/features/order/order.router";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -14,12 +21,8 @@ import {
   View,
   Image,
 } from "react-native";
-import { GoldTempRow } from "@/features/asset/gold.type";
-import { getOrders } from "@/features/order/order.router";
-import { testAssets } from "@/features/asset/asset.type";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
-import { useTheme } from "@/hooks/use-theme";
 
 export default function AssetScreen() {
   const [tableGoldData, setTableGoldData] = useState<GoldTempRow[]>([]);
@@ -34,6 +37,34 @@ export default function AssetScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [todayPrice, setTodayPrice] = useState<number | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const { openAddTransactionModal, setDefaultAddTransactionSubmitHandler } = useAddTransactionModal();
+
+  const handleAddTransaction = (values: AddTransactionFormValues) => {
+    const [rawCode = "ring", rawType = "9999"] = values.goldType.split("_");
+
+    const newRow: GoldTempRow = {
+      id: Date.now().toString(),
+      code: rawCode.toLowerCase(),
+      type: rawType.toLowerCase(),
+      price: values.price,
+      unit: values.unit,
+      side: values.type ? "buy" : "sell",
+      releaseDate: values.releaseDate || new Date().toISOString().slice(0, 10),
+      location: values.location || "Manual",
+      description: values.description || `Invoice: ${values.invoice || "N/A"}`,
+      quantity: values.value,
+    };
+
+    setTableGoldData((prev) => [newRow, ...prev]);
+  };
+
+  useEffect(() => {
+    setDefaultAddTransactionSubmitHandler(handleAddTransaction);
+
+    return () => {
+      setDefaultAddTransactionSubmitHandler(undefined);
+    };
+  }, [handleAddTransaction, setDefaultAddTransactionSubmitHandler]);
 
   const filteredMoney = useMemo(() => {
     return sumBy(
@@ -202,17 +233,30 @@ export default function AssetScreen() {
   return (
     <ThemedView className="flex-1 bg-amber-50">
       <SafeAreaView className="flex-1 bg-amber-50">
-        <View className="py-5 w-full flex-row bg-amber-50">
-          <View className="w-2/3 flex-row flex-wrap ounded-xl items-center">
-            
+        <View className="py-5 px-4 w-full flex-row bg-amber-50">
+          <View className="w-2/3 rounded-xl">
+            <Text className="px-2 text-main-primary font-bold font-mono text-xl uppercase">
+              {i18n.t("assets.assetManagement")}
+            </Text>
           </View>
-          <View className="w-1/3 rounded-xl items-center justify-center">
+          <View className="w-1/3 rounded-xl items-end">
             <View className="flex-row items-center gap-1 border border-amber-400 bg-amber-50 px-2 py-1 rounded-lg">
+              <Pressable
+                className="px-1"
+                onPress={() =>
+                  openAddTransactionModal({
+                    title: "Add Transaction",
+                    onSubmit: handleAddTransaction,
+                  })
+                }
+              >
               <MaterialCommunityIcons
                 name="plus-circle-outline"
                 size={18}
                 color="#d4af37"
               />
+              </Pressable>
+    
             </View>
           </View>
         </View>
@@ -457,6 +501,7 @@ export default function AssetScreen() {
               </Pressable>
             )}
           </View>
+
         </ScrollView>
       </SafeAreaView>
     </ThemedView>

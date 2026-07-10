@@ -18,7 +18,9 @@ import {
 } from "expo-audio";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActionSheetIOS,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   Switch,
@@ -30,45 +32,63 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 type GoldDataItem = {
   id: string;
+  type: boolean;
+  store: string;
+  goldType: string;
   price: number;
+  asyncPrice: number;
   value: number;
   unit: string;
   currency: "VND";
   releaseDate: string;
   location: string;
+  invoice: string;
   description: string;
 };
 
 type GoldFormState = {
   type: boolean;
+  store: string;
+  goldType: string;
   price: number;
+  asyncPrice: number;
   value: number;
   unit: string;
   releaseDate: string;
   location: string;
+  invoice: string;
   description: string;
 };
 
 const initialGoldData: GoldDataItem[] = [
   {
     id: "1",
+    type: false,
+    store: "kim_mon",
+    goldType: "RING_9999",
     price: 13000,
+    asyncPrice: 13000,
     value: 1,
     unit: "mace",
     currency: "VND",
     releaseDate: "2023-01-01",
     location: "Location 1",
+    invoice: "INV-001",
     description: "Sample record",
   },
 ];
 
 const initialFormState: GoldFormState = {
   type: false,
+  store: "kim_mon",
+  goldType: "RING_9999",
   price: 0,
+  asyncPrice: 0,
   value: 0,
   unit: "mace",
   releaseDate: "",
   location: "",
+  invoice: "",
   description: "",
 };
 
@@ -78,14 +98,26 @@ const UNIT_OPTIONS = [
   { label: i18n.t("assets.tael"), value: "tael" },
 ];
 
+const STORE_OPTIONS = [
+  { label: "Kim Mon", value: "kim_mon" },
+  { label: "Another Store", value: "another_store" },
+];
+
+const GOLD_TYPE_OPTIONS = [
+  { label: "RING_9999", value: "RING_9999" },
+  { label: "BAR_9999", value: "BAR_9999" },
+];
+
+type SelectOption = {
+  label: string;
+  value: string;
+};
+
 export default function AIAgentScreen() {
   const isFocused = useIsFocused();
   const { locale } = useLocale();
   const [goldData, setGoldData] = useState<GoldDataItem[]>(initialGoldData);
   const [form, setForm] = useState<GoldFormState>(initialFormState);
-  const [isEnabled, setIsEnabled] = useState(form.type);
-  const [selectedStore, setSelectedStore] = useState("Kim Mon");
-  const [selectedGoldType, setSelectedGoldType] = useState("RING_9999");
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(recorder);
   const [isRecording, setIsRecording] = useState(false);
@@ -103,6 +135,39 @@ export default function AIAgentScreen() {
 
   const updateForm = (key: keyof GoldFormState, value: number | string | boolean) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const parseNumberField = (value: string): number => {
+    const sanitized = value.replace(/,/g, "").trim();
+    if (!sanitized) {
+      return 0;
+    }
+
+    const parsed = Number(sanitized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const getOptionLabel = (options: SelectOption[], selectedValue: string): string => {
+    return options.find((option) => option.value === selectedValue)?.label ?? selectedValue;
+  };
+
+  const openIosSelector = (
+    key: "store" | "goldType" | "unit",
+    options: SelectOption[],
+    title: string,
+  ) => {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        title,
+        options: [...options.map((option) => option.label), "Cancel"],
+        cancelButtonIndex: options.length,
+      },
+      (buttonIndex) => {
+        if (buttonIndex >= 0 && buttonIndex < options.length) {
+          updateForm(key, options[buttonIndex].value);
+        }
+      },
+    );
   };
 
   const startRecording = useCallback(async () => {
@@ -264,6 +329,7 @@ export default function AIAgentScreen() {
 
   const handleSubmit = () => {
     const price = Number(form.price);
+    const asyncPrice = Number(form.asyncPrice);
     const value = Number(form.value);
 
     if (!price || price <= 0) {
@@ -276,6 +342,11 @@ export default function AIAgentScreen() {
       return;
     }
 
+    if (!asyncPrice || asyncPrice <= 0) {
+      Alert.alert("Invalid input", "Async price must be greater than 0.");
+      return;
+    }
+
     if (!form.releaseDate.trim()) {
       Alert.alert("Invalid input", "Release date is required (YYYY-MM-DD).");
       return;
@@ -283,12 +354,17 @@ export default function AIAgentScreen() {
 
     const newItem: GoldDataItem = {
       id: Date.now().toString(),
+      type: form.type,
+      store: form.store,
+      goldType: form.goldType,
       price,
+      asyncPrice,
       value,
       unit: form.unit.trim() || "mace",
       currency: "VND",
       releaseDate: form.releaseDate.trim(),
       location: form.location.trim() || "Unknown",
+      invoice: form.invoice.trim(),
       description: form.description.trim(),
     };
 
@@ -358,151 +434,6 @@ export default function AIAgentScreen() {
             </View>
           </View>
 
-          <View className="rounded-xl border border-slate-200 bg-white p-3">
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {isEnabled ? i18n.t("assets.buy") : i18n.t("assets.sell")}
-            </Text>
-            <Switch
-              trackColor={{ false: "#00ff00", true: "#ff0000" }} // Tailored via inline props
-              thumbColor={isEnabled ? "#fff" : "#fff"}
-              ios_backgroundColor="#00ff00"
-              value={isEnabled}
-              onValueChange={(value) => {
-                setIsEnabled(value);
-                updateForm("type", value);
-              }}
-              className="scale-90" // NativeWind styles can handle layout, margins, or scaling
-            />
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.store")}
-            </Text>
-            <Picker
-              selectedValue={selectedStore}
-              onValueChange={(itemValue) => setSelectedStore(itemValue)}
-            >
-              <Picker.Item label="Kim Mon" value="kim_mon" />
-              <Picker.Item label="Another Store" value="another_store" />
-            </Picker>
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.type")}
-            </Text>
-            <Picker
-              selectedValue={selectedGoldType}
-              onValueChange={(itemValue) => setSelectedGoldType(itemValue)}
-            >
-              <Picker.Item label="RING_9999" value="RING_9999" />
-              <Picker.Item label="BAR_9999" value="BAR_9999" />
-            </Picker>
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.price")}
-            </Text>
-            <TextInput
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
-              keyboardType="numeric"
-              value={form.price.toString()}
-              onChangeText={(text) => updateForm("price", parseFloat(text))}
-              placeholder="13000"
-            />
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.value")}
-            </Text>
-            <TextInput
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
-              keyboardType="numeric"
-              value={form.value.toString()}
-              onChangeText={(text) => updateForm("value", parseFloat(text))}
-              placeholder="1"
-            />
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.unit")}
-            </Text>
-            <View className="overflow-hidden rounded-lg border border-slate-300 bg-white">
-              <Picker
-                selectedValue={form.unit}
-                onValueChange={(itemValue) => updateForm("unit", itemValue)}
-                style={{ height: 50 }}
-              >
-                {UNIT_OPTIONS.map((option) => (
-                  <Picker.Item
-                    key={option.value}
-                    label={option.label}
-                    value={option.value}
-                  />
-                ))}
-              </Picker>
-            </View>
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.asyncPrice")}
-            </Text>
-            <TextInput
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
-              keyboardType="numeric"
-              value={form.price.toString()}
-              onChangeText={(text) => updateForm("price", parseFloat(text))}
-              placeholder="13000"
-            />
-
-            <View className="mb-1.5 mt-2">
-              <Text className="text-xs font-semibold text-slate-700">
-              {i18n.t("assets.asyncValue")}
-              </Text>
-              <Text className="text-xs font-semibold text-slate-700">
-                @{formatVND(form.price * form.value)}
-              </Text>
-            </View>
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.releaseDate")}
-            </Text>
-            <TextInput
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
-              value={form.releaseDate}
-              onChangeText={(text) => updateForm("releaseDate", text)}
-              placeholder="2026-07-02"
-            />
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.location")}
-            </Text>
-            <TextInput
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
-              value={form.location}
-              onChangeText={(text) => updateForm("location", text)}
-              placeholder={i18n.t("assets.location")}
-            />
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.invoice")}
-            </Text>
-
-            <Text className="mb-1.5 mt-2 text-xs font-semibold text-slate-700">
-              {i18n.t("assets.description")}
-            </Text>
-            <TextInput
-              className="min-h-[72px] rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm"
-              style={{ textAlignVertical: "top" }}
-              value={form.description}
-              onChangeText={(text) => updateForm("description", text)}
-              placeholder={i18n.t("assets.description")}
-              multiline
-            />
-
-            <Pressable
-              className="mt-3.5 items-center rounded-lg bg-amber-600 py-2.5"
-              onPress={handleSubmit}
-            >
-              <Text className="text-sm font-bold text-white">
-                {i18n.t("assets.submit")}
-              </Text>
-            </Pressable>
-          </View>
-
           <Text className="mb-2.5 mt-4 text-base font-bold text-slate-800">
             {i18n.t("assets.savedGoldData")}
           </Text>
@@ -517,7 +448,19 @@ export default function AIAgentScreen() {
                     {i18n.t("assets.value")}: {item.value}
                   </Text>
                   <Text className="text-xs text-slate-700">
+                    {i18n.t("assets.type")}: {item.goldType}
+                  </Text>
+                  <Text className="text-xs text-slate-700">
+                    {i18n.t("assets.store")}: {item.store}
+                  </Text>
+                  <Text className="text-xs text-slate-700">
                     {i18n.t("assets.unit")}: {item.unit}
+                  </Text>
+                  <Text className="text-xs text-slate-700">
+                    {i18n.t("assets.asyncPrice")}: {formatVND(item.asyncPrice)}
+                  </Text>
+                  <Text className="text-xs text-slate-700">
+                    {i18n.t("assets.invoice")}: {item.invoice || "-"}
                   </Text>
                   <Text className="text-xs text-slate-700">
                     {i18n.t("assets.releaseDate")}: {item.releaseDate}
@@ -530,6 +473,8 @@ export default function AIAgentScreen() {
               </View>
             ))}
           </View>
+
+
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
