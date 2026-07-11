@@ -36,7 +36,6 @@ type SelectOption = {
 
 type OpenAddTransactionModalOptions = {
   initialValues?: Partial<AddTransactionFormValues>;
-  title?: string;
   onSubmit?: (values: AddTransactionFormValues) => void | Promise<void>;
 };
 
@@ -84,7 +83,6 @@ const GOLD_TYPE_OPTIONS: SelectOption[] = [
 
 export function AddTransactionModalProvider({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(false);
-  const [title, setTitle] = useState("Add Transaction");
   const [form, setForm] = useState<AddTransactionFormValues>(initialFormState);
   const submitRef = useRef<OpenAddTransactionModalOptions["onSubmit"]>(undefined);
   const defaultSubmitRef = useRef<OpenAddTransactionModalOptions["onSubmit"]>(undefined);
@@ -110,13 +108,11 @@ export function AddTransactionModalProvider({ children }: { children: React.Reac
   const closeAddTransactionModal = () => {
     submitRef.current = undefined;
     setVisible(false);
-    setTitle("Add Transaction");
     setForm(initialFormState);
   };
 
   const openAddTransactionModal = (options?: OpenAddTransactionModalOptions) => {
     submitRef.current = options?.onSubmit ?? defaultSubmitRef.current;
-    setTitle(options?.title ?? "Add Transaction");
     setForm({
       ...initialFormState,
       ...options?.initialValues,
@@ -138,7 +134,7 @@ export function AddTransactionModalProvider({ children }: { children: React.Reac
     ActionSheetIOS.showActionSheetWithOptions(
       {
         title: pickerTitle,
-        options: [...options.map((option) => option.label), "Cancel"],
+        options: [...options.map((option) => option.label), i18n.t("common.cancel")],
         cancelButtonIndex: options.length,
       },
       (buttonIndex) => {
@@ -200,12 +196,12 @@ export function AddTransactionModalProvider({ children }: { children: React.Reac
         <View className="flex-1 justify-end bg-black/40">
           <View className="max-h-[90%] rounded-t-2xl bg-white px-4 pb-6 pt-3">
             <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-base font-bold text-slate-800">{title}</Text>
+              <Text className="text-base font-bold text-slate-800">{i18n.t("assets.addTransaction")}</Text>
               <Pressable
                 className="rounded-lg bg-slate-200 px-3 py-1.5"
                 onPress={closeAddTransactionModal}
               >
-                <Text className="text-xs font-semibold text-slate-700">Close</Text>
+                <Text className="text-xs font-semibold text-slate-700">{i18n.t("common.close")}</Text>
               </Pressable>
             </View>
 

@@ -1,13 +1,31 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { AppState, type AppStateStatus, Platform } from "react-native";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ||
+  process.env.EXPO_PUBLIC_BACKEND_URL?.trim() ||
+  "https://python-gold-savings.onrender.com";
+
+type AnonymousLoginResponse = {
+  access_token: string;
+  refresh_token: string;
+};
 
 interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
+  updateAnonymousUser: (email: string, password: string) => Promise<boolean>;
+  anonymousLogin: () => Promise<boolean>;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (username: string, email: string, password: string) => Promise<boolean>;
+  register: (
+    username: string,
+    email: string,
+    password: string,
+  ) => Promise<boolean>;
   logout: () => Promise<void>;
-  currentUser: any;
+  currentUser: SupabaseUser | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -15,10 +33,49 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
 
   const applySessionState = (hasSession: boolean) => {
     setIsLoggedIn(hasSession);
+  };
+
+  const anonymousLogin = async (): Promise<boolean> => {
+    if (!supabase) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/anonymous`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.warn("[auth] anonymous login failed", await response.text());
+        return false;
+      }
+
+      const authResponse = (await response.json()) as AnonymousLoginResponse;
+      const { data, error } = await supabase.auth.setSession({
+        access_token: authResponse.access_token,
+        refresh_token: authResponse.refresh_token,
+      });
+
+      if (error) {
+        console.warn("[auth] unable to apply anonymous session", error.message);
+        return false;
+      }
+
+      const hasSession = Boolean(data.session);
+      applySessionState(hasSession);
+      setCurrentUser(data.session?.user ?? null);
+      return hasSession;
+    } catch (error) {
+      console.warn("[auth] anonymous login request failed", error);
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -31,6 +88,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const supabaseClient = supabase;
+    let appStateSubscription: { remove: () => void } | null = null;
+
+    if (Platform.OS !== "web") {
+      const handleAppStateChange = (state: AppStateStatus) => {
+        if (state === "active") {
+          void supabaseClient.auth.startAutoRefresh();
+        } else {
+          void supabaseClient.auth.stopAutoRefresh();
+        }
+      };
+
+      appStateSubscription = AppState.addEventListener(
+        "change",
+        handleAppStateChange,
+      );
+      handleAppStateChange(AppState.currentState);
+    }
 
     let isMounted = true;
 
@@ -60,14 +134,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMounted = false;
+      appStateSubscription?.remove();
+      if (Platform.OS !== "web") {
+        void supabaseClient.auth.stopAutoRefresh();
+      }
       subscription.unsubscribe();
     };
   }, []);
 
-  const login = async (
-    email: string,
-    password: string,
-  ): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     if (!supabase) {
       return false;
     }
@@ -134,8 +209,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCurrentUser(null);
   };
 
+  const updateAnonymousUser = async (
+    email: string,
+    password: string,
+  ): Promise<boolean> => {
+    if (!supabase) {
+      return false;
+    }
+
+    const { data, error } = await supabase.auth.updateUser({
+      email: email.trim(),
+      password: password,
+    });
+
+    if (error) {
+      console.warn("[auth] update anonymous user failed", error.message);
+      return false;
+    }
+
+    setCurrentUser(data.user ?? null);
+    return true;
+  };
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, isLoading, login, register, logout, currentUser }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        isLoading,
+        updateAnonymousUser,
+        anonymousLogin,
+        login,
+        register,
+        logout,
+        currentUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

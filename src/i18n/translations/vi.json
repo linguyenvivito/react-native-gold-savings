@@ -59,9 +59,12 @@
     "aboutGoldSavings": "Về Gold Savings",
     "privacyPolicy": "Chính sách quyền riêng tư",
     "logout": "Đăng xuất",
+    "logoutInfo": "Bạn đang đăng nhập ẩn danh. Đăng xuất sẽ xóa dữ liệu của bạn. Vui lòng tạo tài khoản để lưu dữ liệu của bạn.",
     "reference": "Tham khảo",
     "security_data": "Dữ liệu được bảo mật.",
-    "security_data_info": "Tất cả dữ liệu đều được bảo mật và mã hóa."
+    "security_data_info": "Tất cả dữ liệu đều được bảo mật và mã hóa.",
+    "anonymousLogin": "Đăng nhập ẩn danh",
+    "createAnonymousAccount": "Tạo tài khoản để lưu dữ liệu của bạn"
   },
   "assets": {
     "product": "Sản phẩm",
@@ -96,7 +99,8 @@
     "enterTodaysPrice": "Nhập giá vàng hôm nay",
     "todaysGoldPrice": "Giá vàng hôm nay",
     "enterPricePerMace": "Nhập giá vàng theo đơn vị `Chỉ vàng` để cập nhật ước tính.",
-    "assetManagement": "Quản lý tài sản"
+    "assetManagement": "Quản lý tài sản",
+    "addTransaction": "Thêm giao dịch"
   },
   "app": {
     "name": "Tiết Kiệm Vàng",
@@ -130,11 +134,14 @@
     "createAccount": "Tạo tài khoản",
     "confirmPassword": "Xác nhận mật khẩu",
     "enterConfirmPassword": "Nhập lại mật khẩu của bạn",
-    "alreadyHaveAccount": "Đã có tài khoản?"
+    "alreadyHaveAccount": "Đã có tài khoản?",
+    "updating": "Updating...",
+    "update": "Update"
   },
   "common": {
     "cancel": "Hủy",
-    "apply": "Áp dụng"
+    "apply": "Áp dụng",
+    "close": "Đóng"
   },
   "market": {
     "domesticMarket": "Thị Trường Trong Nước",

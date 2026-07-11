@@ -59,9 +59,12 @@
     "aboutGoldSavings": "About Gold Savings",
     "privacyPolicy": "Privacy Policy",
     "logout": "Logout",
+    "logoutInfo": "You are an anonymous user. Logging out will clear your data. Please create an account to save your data.",
     "reference": "Reference",
     "security_data": "Data is secured.",
-    "security_data_info": "All your data is secured and encrypted."
+    "security_data_info": "All your data is secured and encrypted.",
+    "anonymousLogin": "Anonymous Login",
+    "createAnonymousAccount": "Create Account to Save Your Data"
   },
   "assets": {
     "product": "Product",
@@ -95,7 +98,8 @@
     "enterTodaysPrice": "Enter today's price",
     "todaysGoldPrice": "Today's Gold Price",
     "enterPricePerMace": "Enter price per unit `Mace` to update estimate.",
-    "assetManagement": "Asset Management"
+    "assetManagement": "Asset Management",
+    "addTransaction": "Add Transaction"
   },
   "app": {
     "name": "Gold Savings",
@@ -107,7 +111,8 @@
   },
   "common": {
     "cancel": "Cancel",
-    "apply": "Apply"
+    "apply": "Apply",
+    "close": "Close"
   },
   "auth": {
     "welcomeBack": "Welcome Back!",
@@ -128,7 +133,9 @@
     "createAccount": "Create Account",
     "confirmPassword": "Confirm Password",
     "enterConfirmPassword": "Enter your confirm password",
-    "alreadyHaveAccount": "Already have an account?"
+    "alreadyHaveAccount": "Already have an account?",
+    "updating": "Updating...",
+    "update": "Update"
   },
   "market": {
     "title": "Market",

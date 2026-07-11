@@ -1,99 +1,50 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
-type AsyncStorageLike = {
-  getItem: (key: string) => Promise<string | null>;
-  setItem: (key: string, value: string) => Promise<void>;
-  removeItem: (key: string) => Promise<void>;
+type SupabaseStorage = {
+  getItem: (key: string) => Promise<string | null> | string | null;
+  setItem: (key: string, value: string) => Promise<void> | void;
+  removeItem: (key: string) => Promise<void> | void;
 };
 
-const nativeFallbackStore = new Map<string, string>();
+const memoryStorage = new Map<string, string>();
 
-const hasWebLocalStorage = (): boolean => {
-  return typeof globalThis !== "undefined" && "localStorage" in globalThis;
-};
-
-const getNativeAsyncStorage = (): AsyncStorageLike | null => {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("@react-native-async-storage/async-storage");
-    const storageCandidate = mod?.default;
-    if (
-      storageCandidate &&
-      typeof storageCandidate.getItem === "function" &&
-      typeof storageCandidate.setItem === "function" &&
-      typeof storageCandidate.removeItem === "function"
-    ) {
-      return storageCandidate as AsyncStorageLike;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
-
-const storageAdapter = {
-  getItem: async (key: string): Promise<string | null> => {
-    if (Platform.OS === "web") {
-      if (hasWebLocalStorage()) {
-        return globalThis.localStorage.getItem(key);
-      }
-      return nativeFallbackStore.get(key) ?? null;
-    }
-    const asyncStorage = getNativeAsyncStorage();
-    if (!asyncStorage) {
-      return nativeFallbackStore.get(key) ?? null;
+const storage: SupabaseStorage = {
+  getItem: (key) => {
+    if (Platform.OS !== "web") {
+      return AsyncStorage.getItem(key);
     }
 
-    try {
-      return await asyncStorage.getItem(key);
-    } catch {
-      return nativeFallbackStore.get(key) ?? null;
+    if (typeof window !== "undefined" && window.localStorage) {
+      return window.localStorage.getItem(key);
     }
+
+    return memoryStorage.get(key) ?? null;
   },
-  setItem: async (key: string, value: string): Promise<void> => {
-    if (Platform.OS === "web") {
-      if (hasWebLocalStorage()) {
-        globalThis.localStorage.setItem(key, value);
-      } else {
-        nativeFallbackStore.set(key, value);
-      }
+  setItem: (key, value) => {
+    if (Platform.OS !== "web") {
+      return AsyncStorage.setItem(key, value);
+    }
+
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(key, value);
       return;
     }
 
-    const asyncStorage = getNativeAsyncStorage();
-    if (!asyncStorage) {
-      nativeFallbackStore.set(key, value);
-      return;
-    }
-
-    try {
-      await asyncStorage.setItem(key, value);
-    } catch {
-      nativeFallbackStore.set(key, value);
-    }
+    memoryStorage.set(key, value);
   },
-  removeItem: async (key: string): Promise<void> => {
-    if (Platform.OS === "web") {
-      if (hasWebLocalStorage()) {
-        globalThis.localStorage.removeItem(key);
-      } else {
-        nativeFallbackStore.delete(key);
-      }
+  removeItem: (key) => {
+    if (Platform.OS !== "web") {
+      return AsyncStorage.removeItem(key);
+    }
+
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(key);
       return;
     }
 
-    const asyncStorage = getNativeAsyncStorage();
-    if (!asyncStorage) {
-      nativeFallbackStore.delete(key);
-      return;
-    }
-
-    try {
-      await asyncStorage.removeItem(key);
-    } catch {
-      nativeFallbackStore.delete(key);
-    }
+    memoryStorage.delete(key);
   },
 };
 
@@ -110,7 +61,7 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseKey, {
       auth: {
-        storage: storageAdapter,
+        storage,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: Platform.OS === "web",

@@ -19,6 +19,7 @@ import {
   resolveBackendUserId,
 } from "@/features/notification/notification.router";
 import { ThemeContextProvider, useThemeContext } from "@/context/theme-context";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
 
 ExpoSplashScreen.preventAutoHideAsync();
 
@@ -34,19 +35,25 @@ function RootNavigator() {
   useEffect(() => {
     let mounted = true;
 
-    const receivedSubscription = Notifications.addNotificationReceivedListener((event) => {
-      if (!mounted) {
-        return;
-      }
-      console.log("[notifications] Received", event.request.identifier);
-    });
+    const receivedSubscription = Notifications.addNotificationReceivedListener(
+      (event) => {
+        if (!mounted) {
+          return;
+        }
+        console.log("[notifications] Received", event.request.identifier);
+      },
+    );
 
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      if (!mounted) {
-        return;
-      }
-      console.log("[notifications] Opened", response.notification.request.identifier);
-    });
+    const responseSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        if (!mounted) {
+          return;
+        }
+        console.log(
+          "[notifications] Opened",
+          response.notification.request.identifier,
+        );
+      });
 
     const bootstrap = async () => {
       const token = await initializeExpoNotifications();
@@ -58,7 +65,9 @@ function RootNavigator() {
 
       const backendUserId = resolveBackendUserId(currentUser);
       if (!backendUserId) {
-        console.warn("[notifications] Missing backend user id; token not persisted.");
+        console.warn(
+          "[notifications] Missing backend user id; token not persisted.",
+        );
         return;
       }
 
@@ -68,10 +77,17 @@ function RootNavigator() {
       }
 
       try {
-        const registered = await registerPushTokenForUser(backendUserId, token, "expo");
+        const registered = await registerPushTokenForUser(
+          backendUserId,
+          token,
+          "expo",
+        );
         if (registered) {
           lastRegisteredTokenKey.current = registrationKey;
-          console.log("[notifications] Push token registered to backend user", backendUserId);
+          console.log(
+            "[notifications] Push token registered to backend user",
+            backendUserId,
+          );
         }
       } catch (error) {
         console.warn("[notifications] Failed to register push token", error);
@@ -95,7 +111,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
       </Stack>
-      {ready && !isLoggedIn && <Redirect href="/(auth)/login" />}
+      {ready && !isLoggedIn && <Redirect href="/(auth)/auth" />}
       {ready && isLoggedIn && <Redirect href="/(tabs)/(dashboard)" />}
       {!splashDone && (
         <SplashScreenComponent onComplete={() => setSplashDone(true)} />
@@ -109,6 +125,8 @@ export default function RootLayout() {
     <ThemeContextProvider>
       <LocaleProvider>
         <RootLayoutContent />
+        {/* Place Toast component here at the root level */}
+        <Toast />
       </LocaleProvider>
     </ThemeContextProvider>
   );
@@ -124,11 +142,11 @@ function RootLayoutContent() {
 
   return (
     <AuthProvider>
-      <AddTransactionModalProvider>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <AddTransactionModalProvider>
           <RootNavigator />
-        </ThemeProvider>
-      </AddTransactionModalProvider>
+        </AddTransactionModalProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

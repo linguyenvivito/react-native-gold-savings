@@ -11,9 +11,9 @@ const SEGMENT_LABELS: Record<string, string> = {
   "(aiagent)": "AI Agent",
   "(donate)": "Donate",
   "(setting)": "Settings",
-  "(auth)": "Account",
-  login: "Login",
-  register: "Register",
+  "(auth)": "Index",
+  "login": "Login",
+  "register": "Register",
   "forgot-password": "Forgot Password",
 };
 
@@ -32,7 +32,35 @@ function BreadcrumbHeader() {
 
   const canGoBack = crumbs.length > 1;
 
-  return <></>;
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingTop: insets.top,
+        paddingBottom: 10,
+        paddingHorizontal: 15,
+        backgroundColor: colors.background,
+      }}
+    >
+      {canGoBack && (
+        <Pressable
+          onPress={() => router.back()}
+          style={{ marginRight: 10 }}
+        >
+          <MaterialCommunityIcons
+
+            name="arrow-left"
+            size={24}
+            color={colors.text}
+          />
+        </Pressable>
+      )}
+      <Text style={{ color: colors.text, fontSize: 18, fontWeight: "bold" }}>
+        {crumbs.join(" / ")}
+      </Text>
+    </View>
+  );  
 }
 
 export default function Breadcrumbs() {

@@ -10,7 +10,7 @@ import {
 import type { Notification } from "@/features/notification/notification.type";
 import i18n from "@/i18n";
 import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,9 +21,13 @@ export default function SettingsScreen() {
   const { locale, toggleLocale } = useLocale();
   const { colorScheme, toggleTheme } = useThemeContext();
   const [notifications, setNotifications] = useState(true);
-  const [unreadNotifications, setUnreadNotifications] = useState<Notification[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState<
+    Notification[]
+  >([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
-  const [notificationError, setNotificationError] = useState<string | null>(null);
+  const [notificationError, setNotificationError] = useState<string | null>(
+    null,
+  );
 
   const backendUserId = resolveBackendUserId(currentUser);
 
@@ -48,7 +52,8 @@ export default function SettingsScreen() {
       setUnreadNotifications(items);
     } catch (error) {
       const message =
-        (error as NotificationApiError)?.message || i18n.t("settings.notifications_failed");
+        (error as NotificationApiError)?.message ||
+        i18n.t("settings.notifications_failed");
       setNotificationError(message);
       setUnreadNotifications([]);
     } finally {
@@ -69,8 +74,8 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 bg-amber-50">
-      <SafeAreaView className="flex-1 bg-amber-50">
+    <ThemedView className="flex-1">
+      <SafeAreaView className="flex-1">
         <View className="px-5 py-5">
           <View className="p-2 flex-row items-center border border-green-600 rounded-xl bg-green-50">
             <Text className="p-3 text-green-600">
@@ -90,7 +95,7 @@ export default function SettingsScreen() {
           </View>
         </View>
         <ScrollView
-          className="flex-1 bg-amber-50"
+          className="flex-1"
           contentContainerClassName="px-4"
           showsVerticalScrollIndicator={false}
         >
@@ -98,36 +103,76 @@ export default function SettingsScreen() {
             <Text className="mb-3 text-xl font-bold text-main-primary font-mono">
               {i18n.t("settings.account")}
             </Text>
-            <Pressable className="mb-2 flex-row justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
-              <View className="flex-1 items-center flex-row">
-                <Text className="text-sm font-semibold pr-2">
-                  <MaterialCommunityIcons
-                    name="account"
-                    size={20}
-                    color="#d4af37"
-                  />
-                </Text>
-                <Text className="text-sm font-semibold">
-                  {i18n.t("settings.profileInformation")}
-                </Text>
-              </View>
-              <Text className="text-xs font-medium text-slate-400">•••</Text>
-            </Pressable>
-            <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
-              <View className="flex-1 items-center flex-row">
-                <Text className="text-sm font-semibold pr-2">
-                  <MaterialCommunityIcons
-                    name="lock"
-                    size={20}
-                    color="#d4af37"
-                  />
-                </Text>
-                <Text className="text-sm font-semibold">
-                  {i18n.t("settings.changePassword")}
-                </Text>
-              </View>
-              <Text className="text-xs font-medium text-slate-400">•••</Text>
-            </Pressable>
+
+            {(!currentUser?.email && (
+              <Pressable className="mb-2 flex-row justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+                <View className="flex-1 items-center flex-row">
+                  <Text className="text-sm font-semibold pr-2">
+                    <MaterialCommunityIcons
+                      name="account"
+                      size={20}
+                      color="#d4af37"
+                    />
+                  </Text>
+                  <Link
+                    href="/(tabs)/(setting)/anonymous"
+                    className="text-sm font-semibold"
+                  >
+                    {i18n.t("settings.createAnonymousAccount")}
+                  </Link>
+                </View>
+                <Text className="text-xs font-medium text-slate-400">•••</Text>
+              </Pressable>
+            )) || (
+              <>
+                <Pressable className="mb-2 flex-row justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+                  <View className="flex-1 items-center flex-row">
+                    <Text className="text-sm font-semibold pr-2">
+                      <MaterialCommunityIcons
+                        name="account"
+                        size={20}
+                        color="#d4af37"
+                      />
+                    </Text>
+                    <Link
+                      href="/(tabs)/(setting)/profile"
+                      className="text-sm font-semibold"
+                    >
+                      {i18n.t("settings.profileInformation")}
+                    </Link>
+                  </View>
+                  <Link
+                    href="/(tabs)/(setting)/profile"
+                    className="text-xs font-medium text-slate-400"
+                  >
+                    •••
+                  </Link>
+                </Pressable>
+                <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+                  <View className="flex-1 items-center flex-row">
+                    <Text className="text-sm font-semibold pr-2">
+                      <MaterialCommunityIcons
+                        name="lock"
+                        size={20}
+                        color="#d4af37"
+                      />
+                    </Text>
+                    <Link
+                      href="/(tabs)/(setting)/password"
+                      className="text-sm font-semibold"
+                    >
+                      {i18n.t("settings.changePassword")}
+                    </Link>
+                  </View>
+                  <Link
+                    href="/(tabs)/(setting)/password"
+                    className="text-xs font-medium text-slate-400"
+                  >
+                    •••
+                  </Link>
+                </Pressable>
+              </>
+            )}
           </View>
 
           <View className="mb-6">
@@ -223,22 +268,30 @@ export default function SettingsScreen() {
                 )}
 
                 {notificationError && (
-                  <Text className="text-xs text-red-500">{notificationError}</Text>
-                )}
-
-                {!isLoadingNotifications && !notificationError && unreadNotifications.length === 0 && (
-                  <Text className="text-xs text-slate-400">
-                    {i18n.t("settings.noUnreadNotifications")}
+                  <Text className="text-xs text-red-500">
+                    {notificationError}
                   </Text>
                 )}
+
+                {!isLoadingNotifications &&
+                  !notificationError &&
+                  unreadNotifications.length === 0 && (
+                    <Text className="text-xs text-slate-400">
+                      {i18n.t("settings.noUnreadNotifications")}
+                    </Text>
+                  )}
 
                 {unreadNotifications.map((item) => (
                   <View
                     key={item.id}
                     className="mt-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2"
                   >
-                    <Text className="text-sm font-semibold text-slate-800">{item.title}</Text>
-                    <Text className="mt-1 text-xs text-slate-600">{item.message}</Text>
+                    <Text className="text-sm font-semibold text-slate-800">
+                      {item.title}
+                    </Text>
+                    <Text className="mt-1 text-xs text-slate-600">
+                      {item.message}
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -294,11 +347,14 @@ export default function SettingsScreen() {
                     color="#d4af37"
                   />
                 </Text>
-                <Text className="text-sm font-semibold">
+                <Link
+                  href="/(tabs)/(setting)/about"
+                  className="text-sm font-semibold"
+                >
                   {i18n.t("settings.aboutGoldSavings")}
-                </Text>
+                </Link>
               </View>
-              <Text className="text-xs font-medium text-slate-400">•••</Text>
+              <Link href="/(tabs)/(setting)/about" className="text-xs font-medium text-slate-400">•••</Link>
             </Pressable>
             <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5">
               <View className="flex-1 items-center flex-row">
@@ -309,11 +365,14 @@ export default function SettingsScreen() {
                     color="#d4af37"
                   />
                 </Text>
-                <Text className="text-sm font-semibold">
+                <Link
+                  href="/(tabs)/(setting)/privacy"
+                  className="text-sm font-semibold"
+                >
                   {i18n.t("settings.privacyPolicy")}
-                </Text>
+                </Link>
               </View>
-              <Text className="text-xs font-medium text-slate-400">•••</Text>
+              <Link href="/(tabs)/(setting)/privacy" className="text-xs font-medium text-slate-400">•••</Link>
             </Pressable>
           </View>
 
@@ -326,6 +385,11 @@ export default function SettingsScreen() {
                 {i18n.t("settings.logout")}
               </Text>
             </Pressable>
+            <View className="mt-4 px-2">
+              <Text className="text-center text-xs font-medium text-slate-400">
+                {i18n.t("settings.logoutInfo")}
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>

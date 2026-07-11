@@ -1,7 +1,5 @@
 import { ThemedView } from "@/components/themed-view";
 import {
-  fetchGoldDataPage,
-  type GoldDataRow,
 } from "@/features/dashboard/gold-data";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import { getStores } from "@/features/store/store.router";
@@ -28,7 +26,7 @@ export default function DashboardScreen() {
   const donationQrUri =
     "https://cdn.hdbank.com.vn/hdbank-file/news/editor/95LaBftBbhDnjGKgbDJT20231228154717/taomaqrtaikhoannganhangagribank_1703753546547.png";
 
-  const [tableGoldData, setTableGoldData] = useState<GoldDataRow[]>([]);
+  const [tableGoldData, setTableGoldData] = useState<any[]>([]);
   const [selectedDate] = useState(new Date("2023-06-01"));
   const [stores, setStores] = useState<Store[]>([]);
   const [isDonationModalVisible, setIsDonationModalVisible] = useState(false);
@@ -38,20 +36,7 @@ export default function DashboardScreen() {
   }, [tableGoldData]);
 
   useEffect(() => {
-    const loadGoldData = async () => {
-      try {
-        const result = await fetchGoldDataPage({
-          fromDate: selectedDate.toISOString().slice(0, 10),
-          page: 0,
-          pageSize: PAGE_SIZE,
-        });
-        setTableGoldData(result.rows);
-      } catch (error) {
-        console.error("Failed to load dashboard data:", error);
-      }
-    };
 
-    loadGoldData();
   }, [selectedDate]);
 
   useEffect(() => {
@@ -101,10 +86,10 @@ export default function DashboardScreen() {
   let accumulatedPercentage = 0;
 
   return (
-    <ThemedView className="flex-1 bg-amber-50">
-      <SafeAreaView className="flex-1 bg-amber-50">
-        <View className="w-full flex-row bg-amber-50">
-          <View className="w-2/3 flex-row flex-wrap rounded-xl items-center">
+    <ThemedView className="flex-1">
+      <SafeAreaView className="flex-1">
+        <View className="w-full flex-row">
+          <View className="w-2/3 rounded-xl items-start ps-2">
             <View className="flex-row items-center gap-1">
               <Image
                 source={require("@/assets/images/logo.svg")}
@@ -116,9 +101,9 @@ export default function DashboardScreen() {
               </Text>
             </View>
           </View>
-          <View className="w-1/3 rounded-xl items-center justify-center">
+          <View className="w-1/3 rounded-xl justify-center items-end pe-2">
             <Pressable
-              className="flex-row items-center gap-1 rounded-lg border border-amber-400 bg-amber-50 px-2 py-1"
+              className="flex-row gap-1 rounded-lg border border-amber-400 bg-amber-50 px-2 py-1"
               onPress={() => setIsDonationModalVisible(true)}
             >
               <MaterialCommunityIcons

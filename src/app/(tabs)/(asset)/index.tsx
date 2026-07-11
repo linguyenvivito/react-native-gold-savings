@@ -231,9 +231,9 @@ export default function AssetScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 bg-amber-50">
-      <SafeAreaView className="flex-1 bg-amber-50">
-        <View className="py-5 px-4 w-full flex-row bg-amber-50">
+    <ThemedView className="flex-1">
+      <SafeAreaView className="flex-1">
+        <View className="py-5 px-4 w-full flex-row">
           <View className="w-2/3 rounded-xl">
             <Text className="px-2 text-main-primary font-bold font-mono text-xl uppercase">
               {i18n.t("assets.assetManagement")}
@@ -417,7 +417,7 @@ export default function AssetScreen() {
               </View>
             )}
 
-            <View className="flex-row items-center justify-between rounded-md border-l-4 border-slate-600 bg-slate-100 p-3">
+            <View className="flex-row items-center justify-between rounded-md border-l-4 border-amber-600 bg-slate-100 p-3">
               <Text className="text-xs font-semibold">
                 {i18n.t("dashboard.filteredMoney")}
               </Text>
@@ -443,45 +443,45 @@ export default function AssetScreen() {
           )}
 
           <View className="mb-5 overflow-hidden rounded-lg border border-slate-200">
-            <View className="flex-row border-b border-slate-200 bg-slate-100 py-2.5">
-              <Text className="flex-1 px-2 font-mono text-xs font-bold text-slate-700">
+            <View className="w-full flex-row border-b border-slate-200 bg-slate-100 py-2.5">
+              <Text className="w-2/5 px-2 font-mono text-sm font-bold text-slate-700">
                 {i18n.t("assets.product")}
               </Text>
-              <Text className="flex-1 px-2 font-mono text-xs font-bold text-slate-700">
+              <Text className="w-2/5 px-2 font-mono text-sm font-bold text-slate-700">
                 {i18n.t("assets.price")}
                 {"\n"}
                 {i18n.t("assets.value")}
                 {"/"}
                 {i18n.t("assets.unit")}
               </Text>
-              <Text className="flex-1 px-2 font-mono text-xs font-bold text-slate-700">
-                {i18n.t("assets.side")}
+              <Text className="w-1/5 px-2 font-mono text-sm font-bold text-slate-700">
+                
               </Text>
             </View>
 
             <View className="pb-2 bg-white">
               {tableGoldData.map((item) => (
                 <Pressable key={item.id.toString()}>
-                  <View className="flex-row border-b border-slate-200 py-2.5">
+                  <View className="w-full flex-row border-b border-slate-200 py-2.5">
                     <Text
-                      className={`flex-1 px-2 text-base ${item.side === "buy" ? "text-emerald-600" : "text-rose-600"}`}
+                      className={`w-2/5 px-2 font-mono text-sm ${item.side === "buy" ? "text-emerald-700" : "text-rose-600"}`}
                     >
                       {i18n.t("assets." + item.code)} -{" "}
                       {i18n.t("assets." + item.type)}
                     </Text>
                     <Text
-                      className={`flex-1 px-2 text-base ${item.side === "buy" ? "text-emerald-600" : "text-rose-600"}`}
+                      className={`w-2/5 px-2 font-mono text-sm ${item.side === "buy" ? "text-emerald-700" : "text-rose-600"}`}
                     >
                       <Text className="font-bold">{formatVND(item.price)}</Text>
                       {"\n"}
-                      <Text className="italic text-sm">
+                      <Text className="italic text-xs">
                         {item.quantity}
                         {"/"}
                         {i18n.t("assets." + item.unit)}
                       </Text>
                     </Text>
                     <Text
-                      className={`flex-1 px-2 text-base ${item.side === "buy" ? "text-emerald-600" : "text-rose-600"}`}
+                      className={`w-1/5 px-2 font-bold font-mono text-sm ${item.side === "buy" ? "text-emerald-700" : "text-rose-600"}`}
                     >
                       {i18n.t("assets." + item.side)}
                     </Text>
