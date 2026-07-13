@@ -80,3 +80,74 @@ export async function getStores(): Promise<Store[]> {
     return payload.map((row) => mapStoreApiResponse(row as StoreApiResponse));
 }
 
+export async function getFavouriteStores(): Promise<Store[]> {
+    const response = await fetch(`${API_BASE_URL}/stores/favourites`, {
+        method: "GET",
+        headers: {
+            Accept: "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        let errorMessage = `Request failed with status ${response.status}`;
+
+        try {
+            const payload = await response.json();
+            if (payload?.detail) {
+                errorMessage = payload.detail;
+            }
+        } catch {
+            const text = await response.text();
+            if (text) {
+                errorMessage = text;
+            }
+        }
+
+        throw new StoreApiError(errorMessage, response.status);
+    }
+
+    const payload: unknown = await response.json();
+
+    if (!Array.isArray(payload)) {
+        throw new StoreApiError("Invalid store response payload", response.status);
+    }
+
+    return payload.map((row) => mapStoreApiResponse(row as StoreApiResponse));
+}
+
+export async function getExchangedStores(): Promise<Store[]> {
+    const response = await fetch(`${API_BASE_URL}/stores/transactions`, {
+        method: "GET",
+        headers: {
+            Accept: "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        let errorMessage = `Request failed with status ${response.status}`;
+
+        try {
+            const payload = await response.json();
+            if (payload?.detail) {
+                errorMessage = payload.detail;
+            }
+        } catch {
+            const text = await response.text();
+            if (text) {
+                errorMessage = text;
+            }
+        }
+
+        throw new StoreApiError(errorMessage, response.status);
+    }
+
+    const payload: unknown = await response.json();
+
+    if (!Array.isArray(payload)) {
+        throw new StoreApiError("Invalid store response payload", response.status);
+    }
+
+    return payload.map((row) => mapStoreApiResponse(row as StoreApiResponse));
+}
+
+

@@ -2,7 +2,7 @@ import { ThemedView } from "@/components/themed-view";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
 import { Picker } from "@react-native-picker/picker";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -16,6 +16,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BranchCard from "./(components)/branch-card";
+import { Store } from "@/features/transaction/store.type";
+import { getStores } from "@/features/transaction/store.router";
 
 type GoldDataItem = {
   id: string;
@@ -65,89 +67,6 @@ const UNIT_OPTIONS = [
   { label: i18n.t("assets.tael"), value: "tael" },
 ];
 
-const branches = [
-  {
-    id: "1",
-    name: "PNJ Nguyễn Huệ",
-    address: "123 Nguyễn Huệ, Quận 1",
-    phone: "028 3822 1111",
-    hours: "08:00 - 21:00",
-    distance: "0.8 km",
-  },
-  {
-    id: "2",
-    name: "PNJ Lê Lợi",
-    address: "210 Lê Lợi, Quận 1",
-    phone: "028 3822 2222",
-    hours: "08:00 - 21:00",
-    distance: "1.2 km",
-  },
-  {
-    id: "3",
-    name: "PNJ Võ Văn Tần",
-    address: "55 Võ Văn Tần, Quận 3",
-    phone: "028 3930 3333",
-    hours: "08:00 - 21:00",
-    distance: "2.5 km",
-  },
-  {
-    id: "4",
-    name: "PNJ Phan Xích Long",
-    address: "85 Phan Xích Long, Phú Nhuận",
-    phone: "028 3999 4444",
-    hours: "08:00 - 21:00",
-    distance: "3.1 km",
-  },
-  {
-    id: "5",
-    name: "PNJ Cộng Hòa",
-    address: "450 Cộng Hòa, Tân Bình",
-    phone: "028 3811 5555",
-    hours: "08:00 - 21:00",
-    distance: "4.2 km",
-  },
-  {
-    id: "6",
-    name: "PNJ Gò Vấp",
-    address: "220 Quang Trung, Gò Vấp",
-    phone: "028 3899 6666",
-    hours: "08:00 - 21:00",
-    distance: "5.5 km",
-  },
-  {
-    id: "7",
-    name: "PNJ Thủ Đức",
-    address: "35 Võ Văn Ngân, Thủ Đức",
-    phone: "028 3722 7777",
-    hours: "08:00 - 21:00",
-    distance: "8.3 km",
-  },
-  {
-    id: "8",
-    name: "PNJ Bình Thạnh",
-    address: "420 Điện Biên Phủ, Bình Thạnh",
-    phone: "028 3512 8888",
-    hours: "08:00 - 21:00",
-    distance: "6.8 km",
-  },
-  {
-    id: "9",
-    name: "PNJ Quận 7",
-    address: "120 Nguyễn Thị Thập, Quận 7",
-    phone: "028 3777 9999",
-    hours: "08:00 - 21:00",
-    distance: "9.4 km",
-  },
-  {
-    id: "10",
-    name: "PNJ Tân Phú",
-    address: "560 Lũy Bán Bích, Tân Phú",
-    phone: "028 3810 0000",
-    hours: "08:00 - 21:00",
-    distance: "7.9 km",
-  },
-];
-
 type MarketTab = "domestic" | "world";
 
 const normalizeSearchText = (value: string): string => {
@@ -161,6 +80,7 @@ const normalizeSearchText = (value: string): string => {
 };
 
 export default function MarketScreen() {
+  const [stores, setStores] = useState<Store[]>([]);
   const [goldData, setGoldData] = useState<GoldDataItem[]>(initialGoldData);
   const [form, setForm] = useState<GoldFormState>(initialFormState);
   const [searchQuery, setSearchQuery] = useState("");
@@ -258,21 +178,21 @@ export default function MarketScreen() {
     return sumBy(goldData, (item) => item.price * item.value);
   }, [goldData]);
 
-  const filteredBranches = useMemo(() => {
+  const filteredStores = useMemo(() => {
     const normalizedQuery = normalizeSearchText(searchQuery);
 
     if (!normalizedQuery) {
-      return branches;
+      return stores;
     }
 
-    return branches.filter((branch) => {
+    return stores.filter((store) => {
       const searchableText = normalizeSearchText(
-        `${branch.name} ${branch.address} ${branch.phone} ${branch.distance}`,
+        `${store.name} ${store.address} ${store.phone}`,
       );
 
       return searchableText.includes(normalizedQuery);
     });
-  }, [searchQuery]);
+  }, [searchQuery, stores]);
 
   const updateForm = (key: keyof GoldFormState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -320,6 +240,21 @@ export default function MarketScreen() {
     setForm(initialFormState);
     Alert.alert("Success", "Gold data submitted.");
   };
+
+
+
+  const fetchStores = async () => {
+    try {
+      const result = await getStores();
+      setStores(result);
+    } catch (error) {
+      console.error("Failed to load stores:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStores();
+  }, []);
 
   return (
     <ThemedView className="flex-1 bg-amber-50">
@@ -380,8 +315,7 @@ export default function MarketScreen() {
         {marketTab === "domestic" ? (
           <FlatList
             className="mt-5"
-            data={filteredBranches}
-            keyExtractor={(item) => item.id}
+            data={filteredStores}
             renderItem={({ item }) => <BranchCard item={item} />}
             ListEmptyComponent={
               <View className="items-center px-5 py-10">

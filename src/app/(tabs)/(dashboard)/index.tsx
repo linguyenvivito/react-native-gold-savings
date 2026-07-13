@@ -1,9 +1,8 @@
 import { ThemedView } from "@/components/themed-view";
-import {
-} from "@/features/dashboard/gold-data";
+import { useOrders } from "@/features/dashboard/gold-data";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
-import { getStores } from "@/features/store/store.router";
-import { Store } from "@/features/store/store.type";
+import { getExchangedStores, getFavouriteStores } from "@/features/transaction/store.router";
+import { Store } from "@/features/transaction/store.type";
 import i18n from "@/i18n";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -26,31 +25,45 @@ export default function DashboardScreen() {
   const donationQrUri =
     "https://cdn.hdbank.com.vn/hdbank-file/news/editor/95LaBftBbhDnjGKgbDJT20231228154717/taomaqrtaikhoannganhangagribank_1703753546547.png";
 
-  const [tableGoldData, setTableGoldData] = useState<any[]>([]);
   const [selectedDate] = useState(new Date("2023-06-01"));
-  const [stores, setStores] = useState<Store[]>([]);
+  const [exchangedStores, setExchangedStores] = useState<Store[]>([]);
+  const [favouriteStores, setFavouriteStores] = useState<Store[]>([]);
   const [isDonationModalVisible, setIsDonationModalVisible] = useState(false);
+  const { orders } = useOrders();
 
-  const totalEstimatedAssets = useMemo(() => {
-    return sumBy(tableGoldData, (item) => item.price * item.value) || 999000000;
-  }, [tableGoldData]);
+  const totalEstimatedOrders = useMemo(() => {
+    return sumBy(orders, (order) => {
+      const sideMultiplier = order.side === "BUY" ? 1 : -1;
+      const estimatedPrice = order.otherPrice ?? order.price;
+
+      return sideMultiplier * estimatedPrice * order.quantity;
+    });
+  }, [orders]);
+
+  useEffect(() => {}, [selectedDate]);
 
   useEffect(() => {
-
-  }, [selectedDate]);
-
-  useEffect(() => {
-    const loadStoreData = async () => {
-      try {
-        const result = await getStores();
-        setStores(result);
-      } catch (error) {
-        console.error("Failed to load stores:", error);
-      }
-    };
-
-    loadStoreData();
+    fetchFavouriteStores();
+    fetchExchangedStores();
   }, []);
+
+  const fetchFavouriteStores = async () => {
+    try {
+      const result = await getFavouriteStores();
+      setFavouriteStores(result);
+    } catch (error) {
+      console.error("Failed to load favourite stores:", error);
+    }
+  };
+
+  const fetchExchangedStores = async () => {
+    try {
+      const result = await getExchangedStores();
+      setExchangedStores(result);
+    } catch (error) {
+      console.error("Failed to load exchanged stores:", error);
+    }
+  };
 
   const tradingViewUrl =
     "https://www.tradingview-widget.com/embed-widget/single-quote/?locale=vi_VN#%7B%22symbol%22%3A%22PEPPERSTONE%3AXAUUSD%22%2C%22width%22%3A300%2C%22height%22%3A126%2C%22isTransparent%22%3Atrue%2C%22colorTheme%22%3A%22light%22%2C%22utm_source%22%3A%22sjc.com.vn%22%2C%22utm_medium%22%3A%22widget%22%2C%22utm_campaign%22%3A%22single-quote%22%2C%22page-uri%22%3A%22sjc.com.vn%2Fbieu-do-gia-vang%22%7D";
@@ -68,8 +81,18 @@ export default function DashboardScreen() {
   };
 
   const data = [
-      { count: 12, active: false, color: "#2c240967", label: i18n.t("dashboard.targetGoldBought") },
-      { count: 8, active: true, color: "#d4af37", label: i18n.t("dashboard.gold") },
+      {
+        count: 12,
+        active: false,
+        color: "#2c240967",
+        label: i18n.t("dashboard.targetGoldBought"),
+      },
+      {
+        count: 8,
+        active: true,
+        color: "#d4af37",
+        label: i18n.t("dashboard.gold"),
+      },
     ],
     size = 200,
     strokeWidth = 20;
@@ -164,7 +187,7 @@ export default function DashboardScreen() {
                 {i18n.t("assets.estimatedTotalAssets")}
               </Text>
               <Text className="text-2xl font-bold text-main-primary">
-                {formatVND(totalEstimatedAssets)}
+                {formatVND(totalEstimatedOrders)}
               </Text>
             </View>
           </View>
@@ -258,12 +281,24 @@ export default function DashboardScreen() {
           </View>
 
           <Text className="mb-3 text-xl font-bold text-main-primary items-center font-mono">
-            {i18n.t("dashboard.yourSubscriptionStorage")}
+            {i18n.t("dashboard.exchangedStores")}
           </Text>
 
           <View className="mb-5 rounded-xl border border-slate-200 bg-white">
             <View className="py-5">
-              {stores.map((item) => (
+              {exchangedStores.map((item) => (
+                <StoreCard key={item.id.toString()} store={item} />
+              ))}
+            </View>
+          </View>
+
+          <Text className="mb-3 text-xl font-bold text-main-primary items-center font-mono">
+            {i18n.t("dashboard.favouriteStores")}
+          </Text>
+
+          <View className="mb-5 rounded-xl border border-slate-200 bg-white">
+            <View className="py-5">
+              {favouriteStores.map((item) => (
                 <StoreCard key={item.id.toString()} store={item} />
               ))}
             </View>

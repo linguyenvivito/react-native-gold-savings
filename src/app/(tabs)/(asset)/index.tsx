@@ -4,7 +4,7 @@ import {
   AddTransactionFormValues,
   useAddTransactionModal,
 } from "@/context/add-transaction-modal-context";
-import { testAssets } from "@/features/asset/asset.type";
+import { useAssets } from "@/context/asset-context";
 import { GoldTempRow } from "@/features/asset/gold.type";
 import { getOrders } from "@/features/order/order.router";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
@@ -37,17 +37,17 @@ export default function AssetScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [todayPrice, setTodayPrice] = useState<number | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const { assets, isLoadingAssets, assetError } = useAssets();
   const { openAddTransactionModal, setDefaultAddTransactionSubmitHandler } = useAddTransactionModal();
 
   const handleAddTransaction = (values: AddTransactionFormValues) => {
-    const [rawCode = "ring", rawType = "9999"] = values.goldType.split("_");
-
     const newRow: GoldTempRow = {
       id: Date.now().toString(),
-      code: rawCode.toLowerCase(),
-      type: rawType.toLowerCase(),
+      product_type: values.product_type,
+      value: values.value,
+      purity: values.purity,
       price: values.price,
-      unit: values.unit,
+      weight_unit: values.weight_unit,
       side: values.type ? "buy" : "sell",
       releaseDate: values.releaseDate || new Date().toISOString().slice(0, 10),
       location: values.location || "Manual",
@@ -180,18 +180,18 @@ export default function AssetScreen() {
 
     try {
       const orders = await getOrders();
-      const goldTempData = orders.map((order) => ({
+      const goldTempData: GoldTempRow[] = orders.map((order) => ({
         id: order.id.toString(),
-        code:
-          testAssets.find((asset) => asset.id === order.assetId.toString())
-            ?.code ?? "unknown",
-        type:
-          testAssets.find((asset) => asset.id === order.assetId.toString())
-            ?.type ?? "unknown",
+        value: 0,
+        product_type:
+          assets.find((asset) => asset.id === order.assetId)
+            ?.product_type.toLowerCase() ?? "unknown",
+        purity:
+          Number(assets.find((asset) => asset.id === order.assetId)?.purity) || 0,
         price: order.price,
-        unit:
-          testAssets.find((asset) => asset.id === order.assetId.toString())
-            ?.unit ?? "unknown",
+        weight_unit:
+          assets.find((asset) => asset.id === order.assetId)
+            ?.weight_unit.toLowerCase() ?? "unknown",
         side: order.side.toLowerCase(),
         releaseDate: order.createdAt,
         location: "Test Location",
@@ -201,7 +201,9 @@ export default function AssetScreen() {
 
       setHasMore(false);
       setPage(targetPage);
-      setTableGoldData(goldTempData);
+      setTableGoldData(
+        (prev) => (replace ? goldTempData : [...prev, ...goldTempData])
+      );
     } catch (error) {
       if (replace) {
         setTableGoldData([]);
@@ -219,9 +221,19 @@ export default function AssetScreen() {
   };
 
   useEffect(() => {
+    if (isLoadingAssets) {
+      return;
+    }
+
+    if (assetError) {
+      setDataError(assetError);
+      setIsLoadingData(false);
+      return;
+    }
+
     // loadGoldData(0, true);
     loadGoldTemp(0, true);
-  }, [selectedDate]);
+  }, [selectedDate, assets, isLoadingAssets, assetError]);
 
   const onLoadMore = () => {
     if (isLoadingData || isLoadingMore || !hasMore) {
@@ -245,7 +257,6 @@ export default function AssetScreen() {
                 className="px-1"
                 onPress={() =>
                   openAddTransactionModal({
-                    title: "Add Transaction",
                     onSubmit: handleAddTransaction,
                   })
                 }
@@ -466,8 +477,8 @@ export default function AssetScreen() {
                     <Text
                       className={`w-2/5 px-2 font-mono text-sm ${item.side === "buy" ? "text-emerald-700" : "text-rose-600"}`}
                     >
-                      {i18n.t("assets." + item.code)} -{" "}
-                      {i18n.t("assets." + item.type)}
+                      {i18n.t("assets." + item.product_type)} -{" "}
+                      {item.purity}
                     </Text>
                     <Text
                       className={`w-2/5 px-2 font-mono text-sm ${item.side === "buy" ? "text-emerald-700" : "text-rose-600"}`}
@@ -477,7 +488,7 @@ export default function AssetScreen() {
                       <Text className="italic text-xs">
                         {item.quantity}
                         {"/"}
-                        {i18n.t("assets." + item.unit)}
+                        {i18n.t("assets." + item.weight_unit)}
                       </Text>
                     </Text>
                     <Text

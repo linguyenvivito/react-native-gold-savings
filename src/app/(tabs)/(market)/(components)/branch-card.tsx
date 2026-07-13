@@ -1,16 +1,10 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
+import { Store } from "@/features/transaction/store.type";
 
 type BranchCardProps = {
-  item: {
-    id: string;
-    name: string;
-    address: string;
-    phone: string;
-    hours: string;
-    distance: string;
-  };
+  item: Store;
 };
 
 export default function BranchCard({ item }: BranchCardProps) {

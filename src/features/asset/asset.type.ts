@@ -1,27 +1,34 @@
 import { AssetCode, AssetType, AssetUnit } from "../shared/const.type";
 
+// Types for Asset entity
 export type AssetRow = {
-  id: number;
-  code: AssetCode;
-  type: AssetType;
-  unit: AssetUnit;
+      id: number;
+      sku: string;
+      product_type: string;
+      purity: string;
+      weight: number;
+      weight_unit: string;
+      quantity: number;
 };
 
+// Types for Asset entity
 export type Asset = {
-  id: string;
-  code: AssetCode;
-  type: AssetType;
-  unit: AssetUnit;
+      id: number;
+      sku: string;
+      product_type: string;
+      purity: string;
+      weight: number;
+      weight_unit: string;
+      quantity: number;
 };
 
+// Types for Asset entity
 export const mapAssetRow = (row: AssetRow): Asset => ({
-  id: String(row.id),
-  code: row.code,
-  type: row.type,
-  unit: row.unit,
+      id: row.id,
+      sku: row.sku,
+      product_type: row.product_type,
+      purity: row.purity,
+      weight: row.weight,
+      weight_unit: row.weight_unit,
+      quantity: row.quantity,
 });
-
-export const testAssets: Asset[] = [
-  { id: "1", code: "XAU_24K", type: "RING", unit: "mace" },
-  { id: "2", code: "XAU_9999", type: "BAR", unit: "mace" },
-];

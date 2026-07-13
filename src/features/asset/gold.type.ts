@@ -1,12 +1,13 @@
 export type GoldTempRow = {
   id: string;
-  code: string;
-  type: string;
+  purity: number;
+  product_type: string;
   price: number;
-  unit: string;
+  weight_unit: string;
+  value: number;
+  quantity: number;
   side: string;
   releaseDate: string;
   location: string;
   description: string;
-  quantity: number;
 };

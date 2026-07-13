@@ -1,4 +1,4 @@
-import { mapOrderRow, type Order, type OrderRow } from "./order.type";
+import { mapOrderRow, type Order, type OrderRow } from "./transaction.type";
 
 const API_BASE_URL =
 	process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ||

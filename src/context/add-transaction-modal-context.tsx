@@ -18,11 +18,12 @@ import i18n from "@/i18n";
 export type AddTransactionFormValues = {
   type: boolean;
   store: string;
-  goldType: string;
+  purity: number;
+  product_type: string;
   price: number;
   asyncPrice: number;
   value: number;
-  unit: string;
+  weight_unit: string;
   releaseDate: string;
   location: string;
   invoice: string;
@@ -54,11 +55,12 @@ const AddTransactionModalContext = createContext<AddTransactionModalContextValue
 const initialFormState: AddTransactionFormValues = {
   type: true,
   store: "kim_mon",
-  goldType: "RING_9999",
+  product_type: "RING",
+  purity: 9999,
   price: 0,
   asyncPrice: 0,
   value: 0,
-  unit: "mace",
+  weight_unit: "mace",
   releaseDate: "",
   location: "",
   invoice: "",
@@ -127,7 +129,7 @@ export function AddTransactionModalProvider({ children }: { children: React.Reac
   };
 
   const openIosSelector = (
-    key: "store" | "goldType" | "unit",
+    key: "store" | "product_type" | "weight_unit",
     options: SelectOption[],
     pickerTitle: string,
   ) => {
@@ -250,17 +252,17 @@ export function AddTransactionModalProvider({ children }: { children: React.Reac
                 {Platform.OS === "ios" ? (
                   <Pressable
                     className="rounded-lg border border-slate-300 bg-white px-3 py-2.5"
-                    onPress={() => openIosSelector("goldType", GOLD_TYPE_OPTIONS, i18n.t("assets.type"))}
+                    onPress={() => openIosSelector("product_type", GOLD_TYPE_OPTIONS, i18n.t("assets.type"))}
                   >
                     <Text className="text-sm text-slate-800">
-                      {getOptionLabel(GOLD_TYPE_OPTIONS, form.goldType)}
+                      {getOptionLabel(GOLD_TYPE_OPTIONS, form.product_type)}
                     </Text>
                   </Pressable>
                 ) : (
                   <View className="overflow-hidden rounded-lg border border-slate-300 bg-white">
                     <Picker
-                      selectedValue={form.goldType}
-                      onValueChange={(itemValue) => updateForm("goldType", String(itemValue))}
+                      selectedValue={form.product_type}
+                      onValueChange={(itemValue) => updateForm("product_type", String(itemValue))}
                     >
                       {GOLD_TYPE_OPTIONS.map((option) => (
                         <Picker.Item key={option.value} label={option.label} value={option.value} />
@@ -297,17 +299,17 @@ export function AddTransactionModalProvider({ children }: { children: React.Reac
                 {Platform.OS === "ios" ? (
                   <Pressable
                     className="rounded-lg border border-slate-300 bg-white px-3 py-2.5"
-                    onPress={() => openIosSelector("unit", UNIT_OPTIONS, i18n.t("assets.unit"))}
+                    onPress={() => openIosSelector("weight_unit", UNIT_OPTIONS, i18n.t("assets.unit"))}
                   >
                     <Text className="text-sm text-slate-800">
-                      {getOptionLabel(UNIT_OPTIONS, form.unit)}
+                      {getOptionLabel(UNIT_OPTIONS, form.weight_unit)}
                     </Text>
                   </Pressable>
                 ) : (
                   <View className="overflow-hidden rounded-lg border border-slate-300 bg-white">
                     <Picker
-                      selectedValue={form.unit}
-                      onValueChange={(itemValue) => updateForm("unit", String(itemValue))}
+                      selectedValue={form.weight_unit}
+                      onValueChange={(itemValue) => updateForm("weight_unit", String(itemValue))}
                       style={{ height: 50 }}
                     >
                       {UNIT_OPTIONS.map((option) => (
