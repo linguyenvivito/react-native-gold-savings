@@ -26,7 +26,9 @@
     "targetGoldAt": "Tích Lũy tại ",
     "worldGoldPrice": "Giá Vàng Thế Giới",
     "appName": "Tiết Kiệm Vàng",
-    "rightColumnMessage": "Hỗ Trợ Tôi!"
+    "rightColumnMessage": "Hỗ Trợ Tôi!",
+    "liveChartUnavailable": "Biểu đồ trực tiếp không khả dụng. Vui lòng kiểm tra kết nối internet của bạn.",
+    "openGoldChart": "Mở Biểu Đồ Vàng"
   },
   "settings": {
     "title": "Cài đặt",

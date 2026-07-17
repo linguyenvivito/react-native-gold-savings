@@ -1,10 +1,7 @@
 import { ThemedView } from "@/components/themed-view";
-import { useOrders } from "@/features/dashboard/gold-data";
-import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
-import { getExchangedStores, getFavouriteStores } from "@/features/transaction/store.router";
-import { Store } from "@/features/transaction/store.type";
+import { formatVND } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Linking,
   Modal,
@@ -19,51 +16,57 @@ import StoreCard from "./(components)/store-card";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
 import Svg, { G, Circle, Text as TextSVG } from "react-native-svg";
+import { useProfiles } from "@/context/profile-context";
+import {
+  transactionTotalEstimate,
+  transactionQuantity,
+} from "@/features/shared/uiFormulas";
 
 export default function DashboardScreen() {
   const PAGE_SIZE = 20;
   const donationQrUri =
     "https://cdn.hdbank.com.vn/hdbank-file/news/editor/95LaBftBbhDnjGKgbDJT20231228154717/taomaqrtaikhoannganhangagribank_1703753546547.png";
 
-  const [selectedDate] = useState(new Date("2023-06-01"));
-  const [exchangedStores, setExchangedStores] = useState<Store[]>([]);
-  const [favouriteStores, setFavouriteStores] = useState<Store[]>([]);
   const [isDonationModalVisible, setIsDonationModalVisible] = useState(false);
-  const { orders } = useOrders();
+  const { profiles, isLoadingProfiles, profileError } = useProfiles();
+  const profile = profiles[0];
 
   const totalEstimatedOrders = useMemo(() => {
-    return sumBy(orders, (order) => {
-      const sideMultiplier = order.side === "BUY" ? 1 : -1;
-      const estimatedPrice = order.otherPrice ?? order.price;
+    const transactions = profile?.goldAccounts[0]?.transactions ?? [];
+    return transactionTotalEstimate(transactions);
+  }, [profile]);
 
-      return sideMultiplier * estimatedPrice * order.quantity;
-    });
-  }, [orders]);
+  const totalQuantity = useMemo(() => {
+    const transactions = profile?.goldAccounts[0]?.transactions ?? [];
+    return transactionQuantity(transactions);
+  }, [profile]);
 
-  useEffect(() => {}, [selectedDate]);
+  const favouriteStores = useMemo(
+    () => profile?.favouriteStores.flatMap((favouriteStore) => favouriteStore.stores) ?? [],
+    [profile],
+  );
 
-  useEffect(() => {
-    fetchFavouriteStores();
-    fetchExchangedStores();
-  }, []);
+  const exchangedStores = useMemo(
+    () =>
+      profile?.goldAccounts.flatMap((account) =>
+        account.transactions.flatMap((transaction) => transaction.stores),
+      ) ?? [],
+    [profile],
+  );
 
-  const fetchFavouriteStores = async () => {
-    try {
-      const result = await getFavouriteStores();
-      setFavouriteStores(result);
-    } catch (error) {
-      console.error("Failed to load favourite stores:", error);
-    }
-  };
-
-  const fetchExchangedStores = async () => {
-    try {
-      const result = await getExchangedStores();
-      setExchangedStores(result);
-    } catch (error) {
-      console.error("Failed to load exchanged stores:", error);
-    }
-  };
+  if (!profile) {
+    return (
+      <ThemedView className="flex-1 items-center justify-center bg-slate-50">
+        <Text className="text-base font-medium text-slate-500">
+          {isLoadingProfiles
+            ? i18n.t("dashboard.loadingProfile")
+            : profileError
+            ? i18n.t("dashboard.profileError")
+            : i18n.t("dashboard.noProfile")}
+        </Text>
+      </ThemedView>
+    );
+  }
 
   const tradingViewUrl =
     "https://www.tradingview-widget.com/embed-widget/single-quote/?locale=vi_VN#%7B%22symbol%22%3A%22PEPPERSTONE%3AXAUUSD%22%2C%22width%22%3A300%2C%22height%22%3A126%2C%22isTransparent%22%3Atrue%2C%22colorTheme%22%3A%22light%22%2C%22utm_source%22%3A%22sjc.com.vn%22%2C%22utm_medium%22%3A%22widget%22%2C%22utm_campaign%22%3A%22single-quote%22%2C%22page-uri%22%3A%22sjc.com.vn%2Fbieu-do-gia-vang%22%7D";
@@ -82,13 +85,13 @@ export default function DashboardScreen() {
 
   const data = [
       {
-        count: 12,
+        count: profile?.goldAccounts[0]?.targetWeight ?? 0,
         active: false,
         color: "#2c240967",
         label: i18n.t("dashboard.targetGoldBought"),
       },
       {
-        count: 8,
+        count: totalQuantity,
         active: true,
         color: "#d4af37",
         label: i18n.t("dashboard.gold"),
@@ -103,7 +106,7 @@ export default function DashboardScreen() {
   const circumference = 2 * Math.PI * radius;
 
   // 2. Aggregate total item count
-  const totalItems = data.reduce((sum, item) => sum + item.count, 0);
+  const totalItems = profile?.goldAccounts[0]?.targetWeight ?? 0;
 
   // 3. Keep track of running accumulated percentages to rotate segments correctly
   let accumulatedPercentage = 0;

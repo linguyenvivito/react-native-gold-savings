@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-
-import { getOrders } from "@/features/order/order.router";
-import type { Order } from "@/features/transaction/order.type";
+import { Order } from "../transaction/transaction.type";
+import { getOrders } from "../transaction/transaction.router";
 
 export function useOrders() {
 	const [orders, setOrders] = useState<Order[]>([]);

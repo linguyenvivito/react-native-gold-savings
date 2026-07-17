@@ -28,7 +28,9 @@
     "targetGoldAt": "Target Gold at ",
     "worldGoldPrice": "World Gold Price",
     "appName": "Gold Savings",
-    "rightColumnMessage": "Support me!"
+    "rightColumnMessage": "Support me!",
+    "liveChartUnavailable": "Live chart is unavailable. Please check your internet connection.",
+    "openGoldChart": "Open Gold Chart"
   },
   "settings": {
     "title": "Settings",

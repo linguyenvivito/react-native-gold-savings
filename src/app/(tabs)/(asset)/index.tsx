@@ -4,9 +4,7 @@ import {
   AddTransactionFormValues,
   useAddTransactionModal,
 } from "@/context/add-transaction-modal-context";
-import { useAssets } from "@/context/asset-context";
 import { GoldTempRow } from "@/features/asset/gold.type";
-import { getOrders } from "@/features/order/order.router";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -23,9 +21,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
+import { useProfiles } from "@/context/profile-context";
+import { Transaction } from "@/features/auth/profile.type";
+import { transactionQuantity, transactionTotalEstimate } from "@/features/shared/uiFormulas";
 
 export default function AssetScreen() {
-  const [tableGoldData, setTableGoldData] = useState<GoldTempRow[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -37,8 +37,9 @@ export default function AssetScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [todayPrice, setTodayPrice] = useState<number | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const { assets, isLoadingAssets, assetError } = useAssets();
   const { openAddTransactionModal, setDefaultAddTransactionSubmitHandler } = useAddTransactionModal();
+  const { profiles, isLoadingProfiles, profileError } = useProfiles();
+  const profile = profiles[0];
 
   const handleAddTransaction = (values: AddTransactionFormValues) => {
     const newRow: GoldTempRow = {
@@ -55,8 +56,17 @@ export default function AssetScreen() {
       quantity: values.value,
     };
 
-    setTableGoldData((prev) => [newRow, ...prev]);
   };
+
+const totalEstimatedOrders = useMemo(() => {
+    const transactions = profile?.goldAccounts[0]?.transactions ?? [];
+    return transactionTotalEstimate(transactions);
+  }, [profile]);
+
+  const totalQuantity = useMemo(() => {
+    const transactions = profile?.goldAccounts[0]?.transactions ?? [];
+    return transactionQuantity(transactions);
+  }, [profile]);
 
   useEffect(() => {
     setDefaultAddTransactionSubmitHandler(handleAddTransaction);
@@ -66,34 +76,7 @@ export default function AssetScreen() {
     };
   }, [handleAddTransaction, setDefaultAddTransactionSubmitHandler]);
 
-  const filteredMoney = useMemo(() => {
-    return sumBy(
-      tableGoldData,
-      (item) => (item.side === "buy" ? 1 : 0) * item.price * item.quantity,
-    );
-  }, [tableGoldData]);
 
-  const estimatedMoney = useMemo(() => {
-    return sumBy(
-      tableGoldData,
-      (item) =>
-        (item.side === "buy" ? 1 : 0) * (todayPrice ?? 0) * item.quantity,
-    );
-  }, [tableGoldData, todayPrice]);
-
-  const money = useMemo(() => {
-    return sumBy(
-      tableGoldData,
-      (item) => (item.side === "buy" ? 1 : 0) * item.price * item.quantity,
-    );
-  }, [tableGoldData]);
-
-  const totalGold = useMemo(() => {
-    return sumBy(
-      tableGoldData,
-      (item) => (item.side === "buy" ? 1 : 0) * item.quantity,
-    );
-  }, [tableGoldData]);
 
   const onPickDate = () => {
     setPendingDate(selectedDate);
@@ -169,72 +152,6 @@ export default function AssetScreen() {
   //   }
   // };
 
-  const loadGoldTemp = async (targetPage: number, replace: boolean) => {
-    if (replace) {
-      setIsLoadingData(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-
-    setDataError(null);
-
-    try {
-      const orders = await getOrders();
-      const goldTempData: GoldTempRow[] = orders.map((order) => ({
-        id: order.id.toString(),
-        value: 0,
-        product_type:
-          assets.find((asset) => asset.id === order.assetId)
-            ?.product_type.toLowerCase() ?? "unknown",
-        purity:
-          Number(assets.find((asset) => asset.id === order.assetId)?.purity) || 0,
-        price: order.price,
-        weight_unit:
-          assets.find((asset) => asset.id === order.assetId)
-            ?.weight_unit.toLowerCase() ?? "unknown",
-        side: order.side.toLowerCase(),
-        releaseDate: order.createdAt,
-        location: "Test Location",
-        description: "Test Description",
-        quantity: order.quantity,
-      }));
-
-      setHasMore(false);
-      setPage(targetPage);
-      setTableGoldData(
-        (prev) => (replace ? goldTempData : [...prev, ...goldTempData])
-      );
-    } catch (error) {
-      if (replace) {
-        setTableGoldData([]);
-      }
-      setDataError(
-        error instanceof Error ? error.message : "Unable to load orders.",
-      );
-    } finally {
-      if (replace) {
-        setIsLoadingData(false);
-      } else {
-        setIsLoadingMore(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (isLoadingAssets) {
-      return;
-    }
-
-    if (assetError) {
-      setDataError(assetError);
-      setIsLoadingData(false);
-      return;
-    }
-
-    // loadGoldData(0, true);
-    loadGoldTemp(0, true);
-  }, [selectedDate, assets, isLoadingAssets, assetError]);
-
   const onLoadMore = () => {
     if (isLoadingData || isLoadingMore || !hasMore) {
       return;
@@ -283,7 +200,7 @@ export default function AssetScreen() {
                 {i18n.t("assets.estimatedTotalAssets")}
               </Text>
               <Text className="text-2xl font-bold text-main-primary">
-                {formatVND(estimatedMoney)}
+                {formatVND(totalEstimatedOrders)}
               </Text>
               <Pressable
                 className="mt-3 self-start rounded-lg bg-slate-900 px-3.5 py-2.5"
@@ -348,7 +265,7 @@ export default function AssetScreen() {
                 {i18n.t("assets.totalInvestment")}
               </Text>
               <Text className="text-2xl font-bold text-main-primary">
-                {formatVND(money)}
+                {formatVND(totalEstimatedOrders)}
               </Text>
             </View>
 
@@ -357,7 +274,7 @@ export default function AssetScreen() {
                 {i18n.t("dashboard.totalGold")}
               </Text>
               <Text className="text-2xl font-bold text-main-primary">
-                {totalGold} {i18n.t("assets.mace")}
+                {totalQuantity} {i18n.t("assets.mace")}
               </Text>
             </View>
           </View>
@@ -433,7 +350,7 @@ export default function AssetScreen() {
                 {i18n.t("dashboard.filteredMoney")}
               </Text>
               <Text className="text-base font-bold text-emerald-700">
-                {formatVND(filteredMoney)}
+                {formatVND(totalEstimatedOrders)}
               </Text>
             </View>
           </View>
@@ -471,30 +388,30 @@ export default function AssetScreen() {
             </View>
 
             <View className="pb-2 bg-white">
-              {tableGoldData.map((item) => (
+              {profile?.goldAccounts[0]?.transactions.map((item) => (
                 <Pressable key={item.id.toString()}>
                   <View className="w-full flex-row border-b border-slate-200 py-2.5">
                     <Text
-                      className={`w-2/5 px-2 font-mono text-sm ${item.side === "buy" ? "text-emerald-700" : "text-rose-600"}`}
+                      className={`w-2/5 px-2 font-mono text-sm ${item.transactionType.toLowerCase() === "buy" ? "text-emerald-700" : "text-rose-600"}`}
                     >
-                      {i18n.t("assets." + item.product_type)} -{" "}
-                      {item.purity}
+                      {i18n.t("assets." + item.transactionType.toLowerCase())} -{" "}
+                      {item.goldProduct?.purity} - {item.goldProduct?.weightUnit}
                     </Text>
                     <Text
-                      className={`w-2/5 px-2 font-mono text-sm ${item.side === "buy" ? "text-emerald-700" : "text-rose-600"}`}
+                      className={`w-2/5 px-2 font-mono text-sm ${item.transactionType.toLowerCase() === "buy" ? "text-emerald-700" : "text-rose-600"}`}
                     >
-                      <Text className="font-bold">{formatVND(item.price)}</Text>
+                      <Text className="font-bold">{formatVND(item.cashAmount)}</Text>
                       {"\n"}
                       <Text className="italic text-xs">
                         {item.quantity}
                         {"/"}
-                        {i18n.t("assets." + item.weight_unit)}
+                        {i18n.t("assets." + item.goldProduct?.weightUnit)}
                       </Text>
                     </Text>
                     <Text
-                      className={`w-1/5 px-2 font-bold font-mono text-sm ${item.side === "buy" ? "text-emerald-700" : "text-rose-600"}`}
+                      className={`w-1/5 px-2 font-bold font-mono text-sm ${item.transactionType.toLowerCase() === "buy" ? "text-emerald-700" : "text-rose-600"}`}
                     >
-                      {i18n.t("assets." + item.side)}
+                      {i18n.t("assets." + item.transactionType.toLowerCase())}
                     </Text>
                   </View>
                 </Pressable>

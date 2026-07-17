@@ -11,7 +11,7 @@ import "../../global.css";
 
 import SplashScreenComponent from "@/components/splash-screen";
 import { AddTransactionModalProvider } from "@/context/add-transaction-modal-context";
-import { AssetProvider } from "@/context/asset-context";
+import { ProfileProvider } from "@/context/profile-context";
 import { AuthProvider, useAuth } from "@/context/auth-context";
 import { LocaleProvider, useLocale } from "@/context/locale-context";
 import { initializeExpoNotifications } from "@/features/notification/expo-notifications";
@@ -144,11 +144,11 @@ function RootLayoutContent() {
   return (
     <AuthProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <AssetProvider>
+        <ProfileProvider>
           <AddTransactionModalProvider>
             <RootNavigator />
           </AddTransactionModalProvider>
-        </AssetProvider>
+        </ProfileProvider>
       </ThemeProvider>
     </AuthProvider>
   );

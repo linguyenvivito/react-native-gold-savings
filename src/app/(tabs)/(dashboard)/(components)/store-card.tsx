@@ -1,8 +1,8 @@
-import { Store } from "@/features/transaction/store.type";
 import Ionicons from "@expo/vector-icons/build/Ionicons";
 import React from "react";
 import { View, Text, TouchableOpacity, Linking } from "react-native";
 import { Image } from "expo-image";
+import { Store } from "@/features/store/store.type";
 
 export default function StoreCard({ store }: { store: Store }) {
   return (

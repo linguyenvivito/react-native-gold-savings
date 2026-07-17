@@ -1,7 +1,6 @@
 import { ThemedView } from "@/components/themed-view";
 import { formatVND, sumBy } from "@/features/shared/moneyFomulars";
 import i18n from "@/i18n";
-import { Picker } from "@react-native-picker/picker";
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -16,8 +15,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BranchCard from "./(components)/branch-card";
-import { Store } from "@/features/transaction/store.type";
-import { getStores } from "@/features/transaction/store.router";
+import { Store } from "@/features/store/store.type";
+import { getStores } from "@/features/store/store.router";
 
 type GoldDataItem = {
   id: string;
